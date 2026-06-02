@@ -84,6 +84,10 @@ class ConfigManager:
         """Return the chapter outline as validated :class:`ChapterSpec` objects."""
         return [ChapterSpec(**ch) for ch in self._setup["book"]["chapters"]]
 
+    def build_settings(self) -> dict[str, Any]:
+        """Return the ``build`` config block (engine, passes, use_biber)."""
+        return self._setup.get("build", {})
+
     # --- rate limits ---------------------------------------------------------
     def rate_limit(self, service: str = "default") -> RateLimitConfig:
         """Return the :class:`RateLimitConfig` for a named service."""
