@@ -103,8 +103,8 @@ The output PDF **must** contain:
 - **NFR-3 Reproducibility:** `uv.lock` pinned; versioned config.
 - **NFR-4 Security:** no secrets in code or Git; `.env` git-ignored.
 - **NFR-5 Observability:** structured logs of crew steps, costs, build passes.
-- **NFR-6 Portability:** LaTeX source compiles on MiKTeX (WSL/Windows) and TeX
-  Live with the same LuaLaTeX engine.
+- **NFR-6 Portability:** LaTeX source compiles on TeX Live (Linux/WSL — the
+  v1.0.0 build) and MiKTeX (Windows) with the same LuaLaTeX engine.
 
 ---
 
@@ -128,10 +128,11 @@ LaTeX compiled (4 passes) → `latex/book.pdf` + cost report.
 
 **Assumptions**
 - A valid `OPENAI_API_KEY` is available in `.env`.
-- A LuaLaTeX engine (MiKTeX preferred) is installed and on `PATH`.
+- A LuaLaTeX engine (TeX Live on Linux/WSL, or MiKTeX on Windows) is installed
+  and on `PATH`, with a Hebrew OpenType font (e.g. David CLM via `fonts-culmus`).
 
 **Dependencies**
-- External: OpenAI API; MiKTeX/TeX Live (LuaLaTeX, biber); Python 3.12 (via `uv`).
+- External: OpenAI API; TeX Live/MiKTeX (LuaLaTeX, biber); Python 3.12 (via `uv`).
 - Libraries: `crewai`, `matplotlib`, `python-dotenv`, `pydantic`, `pytest`,
   `pytest-cov`, `ruff`.
 

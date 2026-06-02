@@ -7,10 +7,13 @@
 
 ## 1. Description & theoretical background
 The book is typeset with **LuaLaTeX**, chosen for native Unicode + OpenType font
-support and clean **Hebrew** shaping via `polyglossia` (Hebrew main language,
-English as the secondary). BiDi (RTL Hebrew with embedded LTR English/code/math)
-is handled by polyglossia's `\textenglish{…}` / language environments. The
-bibliography uses a `.bib` database compiled by **biber** with `biblatex`.
+support and clean **Hebrew** shaping via **babel** (`bidi=basic`, Hebrew main
+language, English as the secondary). BiDi (RTL Hebrew with embedded LTR
+English/code/math) is handled by babel's Unicode bidi engine, which keeps LTR
+runs upright; embedded English is marked with the `\en{…}` =
+`\foreignlanguage{english}{…}` macro. The bibliography uses a `.bib` database
+compiled by **biber** with `biblatex`. *(v1.0.0 switched from
+polyglossia+luabidi — see PLAN.md ADR-3.)*
 
 A correct build needs **multiple passes** so cross-references, the TOC and
 citations stabilise (assignment §13.2): `lualatex → biber → lualatex → lualatex`
@@ -21,7 +24,7 @@ safe 4–5 pass sequence).
 ```
 latex/
 ├── main.tex            # document root: loads preamble, cover, chapters, bib
-├── preamble.tex        # packages, fonts, polyglossia, fancyhdr, biblatex setup
+├── preamble.tex        # packages, fonts, babel (bidi=basic), fancyhdr, biblatex
 ├── cover.tex           # cover page (FR-B1)
 ├── chapters/           # one .tex per chapter (some authored, some generated)
 ├── figures/            # TikZ sources / includegraphics targets
@@ -49,15 +52,16 @@ latex/
 - **Generated vs authored:** the LLM fills **chapter bodies** only; structure,
   preamble and BiDi scaffolding stay human-authored (ADR-6) to guarantee
   compilable, correct RTL/LTR output.
-- **Distribution:** MiKTeX (preferred per assignment) with on-the-fly package
-  install; TeX Live works identically.
+- **Distribution:** TeX Live (used for the v1.0.0 build on Ubuntu/WSL, with
+  `fonts-culmus` for David CLM). MiKTeX works on Windows; its Ubuntu `.deb`
+  targets older releases and won't satisfy dependencies on Ubuntu 25.10+.
 
 ## 5. Success criteria & test scenarios
 - **SC-1** Clean build exits 0 and yields `book.pdf`. *Test:* run `build.sh` on a
   clean tree (env with LuaLaTeX); assert exit 0 and PDF exists.
 - **SC-2** PDF is ≥ 14 pages. *Test:* `pdfinfo`/`pdfplumber` page count ≥ 14.
 - **SC-3** All required elements present. *Test:* checklist + grep of `.tex`
-  (\includegraphics, tikzpicture, begin{equation}, \cite, fancyhdr, polyglossia).
+  (\includegraphics, tikzpicture, begin{equation}, \cite, fancyhdr, babel).
 - **SC-4** Citations resolve (no `?` markers). *Test:* grep build log for
   undefined-citation warnings → none after full pass sequence.
 - **SC-5** `latex_service` escapes/handles content safely. *Test:* feed content

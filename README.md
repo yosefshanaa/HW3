@@ -139,5 +139,5 @@ uv run ruff check        # lint (zero violations required)
 
 MIT — see [`LICENSE`](LICENSE). Built with
 [CrewAI](https://docs.crewai.com), [matplotlib](https://matplotlib.org),
-[pydantic](https://docs.pydantic.dev) and LuaLaTeX (`polyglossia`, `biblatex`,
+[pydantic](https://docs.pydantic.dev) and LuaLaTeX (`babel`, `biblatex`,
 `TikZ`). Bibliography sources are credited in `latex/references.bib`.

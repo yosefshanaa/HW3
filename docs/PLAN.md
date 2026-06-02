@@ -128,11 +128,19 @@ limits, retries and logging. *Trade-off:* a thin indirection layer for a large
 gain in observability, cost control and testability (mockable seam).
 *Alternative:* call the SDK directly (rejected — violates §5).
 
-**ADR-3 — LuaLaTeX + polyglossia for Hebrew BiDi.**
-*Decision:* LuaLaTeX with `polyglossia` (Hebrew main, English secondary) and a
-Hebrew-capable OpenType font. *Trade-off:* heavier than pdfLaTeX but the only
-clean path to correct RTL/LTR + Hebrew shaping; matches assignment §13.2.
-*Alternative:* XeLaTeX (allowed fallback, same source).
+**ADR-3 — LuaLaTeX + babel `bidi=basic` for Hebrew BiDi.**
+*Decision:* LuaLaTeX with **babel** (`bidi=basic`, Hebrew main + English) and a
+Hebrew-capable OpenType font (David CLM from `fonts-culmus`). *Trade-off:*
+heavier than pdfLaTeX but the only clean path to correct RTL/LTR + Hebrew
+shaping; matches assignment §13.2. *Alternative:* XeLaTeX (allowed fallback,
+same source).
+*Revision (v1.0.0):* originally implemented with `polyglossia`+`luabidi`. On
+TeX Live, `luabidi.sty` is unpackaged and, when supplied manually, its LuaTeX
+bidi mirror-reversed every embedded English (LTR) run inside the Hebrew (RTL)
+text (e.g. "Lean Startup" → "putratS naeL"). Switched to babel `bidi=basic`,
+whose Unicode bidi algorithm keeps LTR runs upright. Fonts now set via
+`\babelfont`; `\textenglish{…}` replaced by the `\en{…}` =
+`\foreignlanguage{english}{…}` macro.
 
 **ADR-4 — Deterministic, grounded content by default.**
 *Decision:* ship curated source facts and keep live web-search tools optional

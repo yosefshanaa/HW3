@@ -43,6 +43,9 @@ following the mandated workflow PRD → PLAN → TODO → code.
   chapter, a TikZ diagram, a biber bibliography."
 - **Practice:** keep structural LaTeX human-authored and inject prose (ADR-6) to
   guarantee compilable, correct RTL/LTR output.
+- **Outcome (v1.0.0):** the BiDi layer was switched at compile time from
+  polyglossia to **babel `bidi=basic`** — polyglossia's `luabidi` mirror-reversed
+  embedded English. See PLAN.md ADR-3.
 
 ### A5. CrewAI pipeline
 - **Goal:** "Researcher → Writer → Reviewer → LaTeX Engineer, sequential,

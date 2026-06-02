@@ -23,7 +23,7 @@ Status keys: ☐ not started · ◐ in progress · ☑ done. Owner: `dev` (solo)
 - ☑ **T1.6** `sdk/sdk.py` + thin CLI.
 
 ## Phase 2 — LaTeX deliverable (M2) — *source complete, compile pending*
-- ☑ **T2.1** `preamble.tex` (LuaLaTeX, polyglossia, fancyhdr).
+- ☑ **T2.1** `preamble.tex` (LuaLaTeX, babel `bidi=basic`, fancyhdr).
 - ☑ **T2.2** Cover + TOC + chapters. ☑ **T2.3** image/table/formula/TikZ.
 - ☑ **T2.4** BiDi chapter. ☑ **T2.5** `references.bib` + biber. ☑ **T2.6** `build.sh`.
 
