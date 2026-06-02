@@ -1,0 +1,27 @@
+% Required elements injected into the crew-generated Lean chapter:
+% a Hebrew<->English BiDi demonstration (FR-B7) and a TikZ diagram (FR-B8).
+\bigskip
+\noindent\emph{הדגמת מעבר דו-כיווני} \term{(BiDi)}: לולאת
+\en{Build--Measure--Learn} היא מנוע הלמידה של ה-\en{Lean Startup}~\cite{ries2011lean}
+— \en{Ideas} $\rightarrow$ \en{Build} $\rightarrow$ \en{Measure} $\rightarrow$
+\en{Learn}. השערה נבדקת נכתבת באנגלית
+כשורה אחת:
+\begin{quote}\en{\codefont If we add one-click checkout, weekly repeat purchases rise by 15\%.}\end{quote}
+ואז חוזרים לעברית — רק כשהמספר מאומת מקדמים את הפיצ׳ר מניסוי אל המוצר.
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}[every node/.style={font=\small\itshape}]
+    \node[draw, circle, minimum size=1.5cm, fill=brandblue!10] (build) at (0,0) {\en{Build}};
+    \node[draw, circle, minimum size=1.5cm, fill=brandgreen!10] (measure) at (3.4,-2.2) {\en{Measure}};
+    \node[draw, circle, minimum size=1.5cm, fill=brandred!10] (learn) at (-3.4,-2.2) {\en{Learn}};
+    \draw[-{Stealth[length=3mm]}, very thick, brandblue]
+      (build) to[bend left=20] node[right=2pt]{\en{Product}} (measure);
+    \draw[-{Stealth[length=3mm]}, very thick, brandgreen]
+      (measure) to[bend left=20] node[below=2pt]{\en{Data}} (learn);
+    \draw[-{Stealth[length=3mm]}, very thick, brandred]
+      (learn) to[bend left=20] node[left=2pt]{\en{Ideas}} (build);
+  \end{tikzpicture}
+  \caption{לולאת \en{Build--Measure--Learn} (שורטטה ב-\en{TikZ}).}
+  \label{fig:gen-bml}
+\end{figure}

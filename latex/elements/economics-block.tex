@@ -1,0 +1,43 @@
+% Required elements injected into the crew-generated economics chapter:
+% fancy math formulas (FR-B6), a table (FR-B5) and the Python graph (FR-B4).
+\medskip
+\noindent ערך החיים של הלקוח, עלות הרכישה ומסלול המזומן מוגדרים
+כך~\cite{thiel2014zero}:
+\begin{equation}
+  \mathrm{LTV} \;=\; \frac{\overline{\mathrm{ARPA}} \cdot m_{\text{gross}}}{c_{\text{churn}}},
+  \label{eq:gen-ltv}
+\end{equation}
+\begin{align}
+  \mathrm{CAC} \;=\; \frac{S_{\text{S\&M}}}{N_{\text{new}}},
+  \qquad
+  \mathrm{Runway} \;=\; \frac{C_{\text{cash}}}{B_{\text{net}}}\,.
+  \label{eq:gen-cac}
+\end{align}
+כלל האצבע לבריאות עסקית:
+\begin{equation}
+  \boxed{\;\dfrac{\mathrm{LTV}}{\mathrm{CAC}} \;\geq\; 3
+  \quad\text{וגם}\quad \text{זמן החזר ה-}\mathrm{CAC} \;\leq\; 12\ \text{חודשים}.\;}
+\end{equation}
+
+\begin{table}[h]
+  \centering
+  \caption{שלבי גיוס אופייניים ומיקודם.}
+  \label{tab:gen-rounds}
+  \begin{tabular}{l r r l}
+    \toprule
+    \textbf{\en{Stage}} & \textbf{גיוס (\en{\$})} & \textbf{שווי (\en{\$M})} & \textbf{מיקוד עיקרי} \\
+    \midrule
+    \en{Pre-Seed} & \en{50K--500K} & \en{1--5}    & אימות בעיה ורעיון \\
+    \en{Seed}     & \en{0.5--3M}   & \en{5--20}   & חיפוש התאמת מוצר-שוק \\
+    \en{Series A} & \en{3--15M}    & \en{20--80}  & מנוע צמיחה חוזר \\
+    \en{Series B} & \en{15--50M}   & \en{80--250} & הרחבה ושוקים חדשים \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.74\textwidth]{unit_economics.pdf}
+  \caption{כלכלת יחידה — \en{LTV} מול \en{CAC} לפי ערוץ רכישה (גרף \en{Python}).}
+  \label{fig:gen-unit}
+\end{figure}
