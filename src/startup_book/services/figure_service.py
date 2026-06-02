@@ -16,6 +16,7 @@ matplotlib.use("Agg")  # headless backend; must precede pyplot import
 import matplotlib.pyplot as plt  # noqa: E402  (backend set above on purpose)
 
 from startup_book.constants import FIGURES_DIR  # noqa: E402
+from startup_book.shared.safe_warnings import warns_safely  # noqa: E402
 
 _BLUE = "#1f3b73"
 _RED = "#c0392b"
@@ -36,8 +37,38 @@ class FigureService:
 
     def generate_all(self) -> list[Path]:
         """Render every figure and return the list of written paths."""
-        return [self.jcurve(), self.unit_economics()]
+        return [self.jcurve(), self.unit_economics(), self.illustration()]
 
+    @warns_safely
+    def illustration(self) -> Path:
+        """Render a decorative raster (PNG) cover illustration (FR-B3 image).
+
+        A stylised "growth" scene — an upward trajectory with a rocket — drawn
+        with matplotlib patches and saved as a raster PNG, distinct from the
+        vector data graphs.
+        """
+        import matplotlib.patches as mpatches
+
+        fig, ax = plt.subplots(figsize=(5.2, 3.0))
+        ax.set_xlim(0, 10)
+        ax.set_ylim(0, 6)
+        ax.axis("off")
+        ax.add_patch(mpatches.Rectangle((0, 0), 10, 6, color="#eef2fa"))
+        xs = [i * 0.2 for i in range(46)]
+        ys = [0.4 + 0.05 * (x**1.9) for x in xs]
+        ax.plot(xs, ys, color=_BLUE, lw=3)
+        for sx, sy in [(1.5, 5.2), (3.2, 4.6), (7.5, 5.4), (8.8, 3.2)]:
+            ax.scatter([sx], [sy], marker="*", s=140, color=_RED, zorder=4)
+        rx, ry = xs[-1], ys[-1]
+        ax.scatter([rx], [ry], marker="^", s=420, color=_RED, zorder=5)
+        ax.text(0.4, 5.4, "Idea", color=_BLUE, fontsize=12, weight="bold")
+        ax.text(8.0, 1.8, "Scale", color=_GREEN, fontsize=12, weight="bold")
+        path = self.out_dir / "illustration.png"
+        fig.savefig(path, format="png", dpi=200, bbox_inches="tight")
+        plt.close(fig)
+        return path
+
+    @warns_safely
     def jcurve(self) -> Path:
         """Plot the classic startup cash-flow J-curve over 24 months."""
         months = list(range(25))
@@ -68,6 +99,7 @@ class FigureService:
         ax.grid(True, alpha=0.25)
         return self._save(fig, "jcurve.pdf")
 
+    @warns_safely
     def unit_economics(self) -> Path:
         """Bar chart comparing LTV and CAC per acquisition channel."""
         channels = ["Organic", "Paid search", "Referral"]
@@ -90,9 +122,13 @@ class FigureService:
         return self._save(fig, "unit_economics.pdf")
 
     def _save(self, fig: plt.Figure, name: str) -> Path:
-        """Save ``fig`` as a tight vector PDF and close it; return the path."""
+        """Save ``fig`` as a tight vector PDF and close it; return the path.
+
+        ``bbox_inches="tight"`` handles the layout; we deliberately avoid
+        ``tight_layout()`` (its compatibility warning clashes with pydantic's
+        global ``warnings.warn`` wrapper once CrewAI is imported).
+        """
         path = self.out_dir / name
-        fig.tight_layout()
         fig.savefig(path, format="pdf", bbox_inches="tight")
         plt.close(fig)
         return path

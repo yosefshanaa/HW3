@@ -6,21 +6,24 @@ generated chapter fragments compile. Keeping them pure makes escaping easy to un
 test (PRD_latex_generation SC-5).
 """
 
-from __future__ import annotations
+import re
 
-# Order matters: backslash must be escaped first, hence a list of pairs.
-_REPLACEMENTS: list[tuple[str, str]] = [
-    ("\\", r"\textbackslash{}"),
-    ("&", r"\&"),
-    ("%", r"\%"),
-    ("$", r"\$"),
-    ("#", r"\#"),
-    ("_", r"\_"),
-    ("{", r"\{"),
-    ("}", r"\}"),
-    ("~", r"\textasciitilde{}"),
-    ("^", r"\textasciicircum{}"),
-]
+# Single-pass map: each special char maps to its LaTeX-safe form. A one-pass
+# regex substitution avoids re-escaping characters that a replacement itself
+# inserts (e.g. the braces inside ``\textbackslash{}``).
+_LATEX_MAP: dict[str, str] = {
+    "\\": r"\textbackslash{}",
+    "&": r"\&",
+    "%": r"\%",
+    "$": r"\$",
+    "#": r"\#",
+    "_": r"\_",
+    "{": r"\{",
+    "}": r"\}",
+    "~": r"\textasciitilde{}",
+    "^": r"\textasciicircum{}",
+}
+_LATEX_RE = re.compile("|".join(re.escape(key) for key in _LATEX_MAP))
 
 
 def escape_latex(text: str) -> str:
@@ -32,9 +35,7 @@ def escape_latex(text: str) -> str:
     Returns:
         The text with each special character replaced by its LaTeX-safe form.
     """
-    for char, repl in _REPLACEMENTS:
-        text = text.replace(char, repl)
-    return text
+    return _LATEX_RE.sub(lambda match: _LATEX_MAP[match.group()], text)
 
 
 def _emphasis(text: str) -> str:
