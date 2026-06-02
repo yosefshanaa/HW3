@@ -11,10 +11,10 @@ Status keys: ☐ not started · ◐ in progress · ☑ done. Owner: `dev` (solo)
   · owner ai · *DoD:* pushed to GitHub, tree matches guidelines §2.4.
 - ◐ **T0.2** Write `PRD.md` · *DoD:* goals, KPIs, FRs, NFRs, milestones. ☑
 - ◐ **T0.3** Write `PLAN.md` · *DoD:* C4, ADRs, module map, versioning. ☑
-- ◐ **T0.4** Write `TODO.md` (this file) · *DoD:* phased tasks with DoD.
-- ☐ **T0.5** Per-mechanism PRDs: crew pipeline, LaTeX gen, API gatekeeper
+- ☑ **T0.4** Write `TODO.md` (this file) · *DoD:* phased tasks with DoD.
+- ☑ **T0.5** Per-mechanism PRDs: crew pipeline, LaTeX gen, API gatekeeper
   · *DoD:* each has theory, I/O, constraints, success/test scenarios.
-- ☐ **T0.6** User review/approval of all planning docs.
+- ◐ **T0.6** User review/approval of all planning docs (in progress).
 
 ## Phase 1 — Core software (M1)
 - ☐ **T1.1** `pyproject.toml` (uv build, deps, ruff, coverage config), `uv.lock`
