@@ -1,0 +1,41 @@
+\chapter{טעויות נפוצות וניהול סיכונים}
+
+ניתוח של מאות כשלונות מצביע על דפוסים חוזרים. הסיבה המובילה לכישלון היא
+היעדר צורך אמיתי בשוק, ואחריה אזילת המזומן וצוות לא מתאים~\cite{cbinsights2021}.
+איור~\ref{fig:funnel} מציג את שרשרת הסיכונים העיקרית.
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}[
+      box/.style={draw, rounded corners, minimum width=2.7cm, minimum height=1cm,
+                  align=center, font=\small, fill=brandblue!8},
+      arr/.style={-{Stealth[length=3mm]}, very thick, brandred}]
+    \node[box] (need) {אין צורך\\בשוק};
+    \node[box, right=1.1cm of need] (cash) {אזל\\המזומן};
+    \node[box, right=1.1cm of cash] (team) {צוות\\לא מתאים};
+    \node[box, right=1.1cm of team] (comp) {הודחנו\\בתחרות};
+    \draw[arr] (need) -- (cash);
+    \draw[arr] (cash) -- (team);
+    \draw[arr] (team) -- (comp);
+  \end{tikzpicture}
+  \caption{שרשרת הסיכונים השכיחה לכישלון סטארט-אפ (שורטט ב-\en{TikZ}).}
+  \label{fig:funnel}
+\end{figure}
+
+\section{אנטי-דפוסים שכדאי להכיר}
+
+\begin{itemize}
+  \item \textbf{בנייה מוקדמת מדי:} כתיבת קוד לפני אימות הביקוש — בזבוז המשאב
+        היקר ביותר, זמן.
+  \item \textbf{הרחבה מוקדמת \term{(premature scaling)}:} השקעה בשיווק וגיוס
+        לפני שהושגה התאמת מוצר-שוק.
+  \item \textbf{מדדי יוהרה:} מעקב אחר מספרים מרשימים שאינם מנחים החלטה.
+  \item \textbf{התעלמות מ-\en{runway}:} אי-ניהול קצב השריפה עד שמתגלה מאוחר
+        מדי שאין מספיק מזומן לסבב הבא.
+\end{itemize}
+
+\section{ניהול סיכונים כתהליך מתמשך}
+
+ניהול סיכונים אינו אירוע חד-פעמי אלא בקרה שוטפת: לזהות את ההשערה המסוכנת ביותר
+בכל רגע, לבדוק אותה בזול, ולעדכן את התוכנית בהתאם. זוהי בדיוק לולאת הלמידה
+מפרק~\ref{fig:bml}, מיושמת על קיום החברה עצמה.

@@ -1,0 +1,47 @@
+\chapter{שיטת ה-\texorpdfstring{\en{Lean Startup}}{Lean Startup} ולולאת \texorpdfstring{\en{Build--Measure--Learn}}{Build-Measure-Learn}}
+
+\emph{פרק זה מדגים מעבר דו-כיווני} \term{(BiDi)} \emph{נכון בין עברית מימין-לשמאל
+לבין מונחי אנגלית וקוד משמאל-לימין.}
+
+שיטת ה-\en{Lean Startup} של אריק ריס מציעה מנוע צמיחה המבוסס על
+\emph{למידה מאומתת} \term{(validated learning)}: כל מחזור פיתוח מתחיל בהשערה,
+ממיר אותה למוצר מינימלי בר-קיימא — \term{Minimum Viable Product (MVP)} —
+ומודד את תגובת הלקוחות בפועל~\cite{ries2011lean}.
+
+\section{לולאת \texorpdfstring{\en{Build--Measure--Learn}}{Build-Measure-Learn}}
+
+ליבת השיטה היא לולאת משוב מהירה: \en{Ideas} $\rightarrow$ \en{Build}
+$\rightarrow$ \en{Product} $\rightarrow$ \en{Measure} $\rightarrow$ \en{Data}
+$\rightarrow$ \en{Learn}, וחוזר חלילה. המטרה אינה לעבור את הלולאה פעם אחת, אלא
+\emph{למזער את הזמן} למחזור שלם. איור~\ref{fig:bml} מתאר את הלולאה.
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}[every node/.style={font=\small\itshape}]
+    \node[draw, circle, minimum size=1.5cm, fill=brandblue!10] (build) at (0,0) {\en{Build}};
+    \node[draw, circle, minimum size=1.5cm, fill=brandgreen!10] (measure) at (3.4,-2.2) {\en{Measure}};
+    \node[draw, circle, minimum size=1.5cm, fill=brandred!10] (learn) at (-3.4,-2.2) {\en{Learn}};
+    \draw[-{Stealth[length=3mm]}, very thick, brandblue]
+      (build) to[bend left=20] node[right=2pt]{\en{Product}} (measure);
+    \draw[-{Stealth[length=3mm]}, very thick, brandgreen]
+      (measure) to[bend left=20] node[below=2pt]{\en{Data}} (learn);
+    \draw[-{Stealth[length=3mm]}, very thick, brandred]
+      (learn) to[bend left=20] node[left=2pt]{\en{Ideas}} (build);
+  \end{tikzpicture}
+  \caption{לולאת \en{Build--Measure--Learn} — מנוע הלמידה של ה-\en{Lean Startup},
+  משורטטת ב-\en{TikZ}.}
+  \label{fig:bml}
+\end{figure}
+
+\section{\texorpdfstring{\en{MVP}}{MVP}, פיבוט ומדדים שאינם משקרים}
+
+ה-\en{MVP} הוא הגרסה הזולה ביותר שעדיין מאפשרת לבדוק את ההשערה המרכזית — לא
+מוצר חצי-אפוי, אלא \emph{ניסוי ממוקד}. כאשר הנתונים מלמדים שההשערה שגויה, מבצעים
+\emph{פיבוט} \term{(pivot)} — שינוי מבני בכיוון תוך שמירה על מה שנלמד. חשוב להבחין
+בין \term{actionable metrics} (מדדים מובילים לפעולה) לבין \term{vanity metrics}
+(מדדי יוהרה) כגון מספר הורדות מצטבר, שנראים טוב אך אינם מנחים החלטה.
+
+לדוגמה, השערה נבדקת מנוסחת באנגלית כשורה אחת:
+\begin{quote}\en{\codefont If we add one-click checkout, weekly repeat purchases rise by 15\%.}\end{quote}
+לאחר ההגדרה הזו חוזרים לעברית: רק כאשר המספר מאומת בנתוני אמת, מקדמים את הפיצ׳ר
+משלב הניסוי אל המוצר.
