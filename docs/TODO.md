@@ -4,9 +4,11 @@
 Status keys: ☐ not started · ◐ in progress · ☑ done. Owner: `dev` (solo) /
 `ai` (AI-assisted). Each task lists its **Definition of Done (DoD)**.
 
-> **Overall:** Phases 0–5 complete (software, book source, crew, tests at 95.9%
-> coverage, docs). **Phase 6 (final compile) is blocked on installing LuaLaTeX/
-> MiKTeX** on the host.
+> **Overall:** ✅ **All phases complete (v1.0.0).** Software, book source, crew,
+> tests at 95.9% coverage, docs, and the final compile are done. Both books are
+> compiled with LuaLaTeX (TeX Live): `book.pdf` (15 pp, curated) and
+> `book_generated.pdf` (12 pp, crew-produced), with correct Hebrew RTL /
+> English LTR bidirectional typesetting.
 
 ## Phase 0 — Planning (M0)
 - ☑ **T0.1** Initialise repo, scaffold, `.gitignore`, license, README stub.
@@ -39,10 +41,22 @@ Status keys: ☐ not started · ◐ in progress · ☑ done. Owner: `dev` (solo)
 - ☑ **T5.3** ruff clean. ☑ **T5.4** `docs/PROMPTS.md`.
 - ☑ **T5.5** `notebooks/results_analysis.ipynb`. ☑ **T5.6** full `README.md`.
 
-## Phase 6 — Ship (M6) — *blocked on LaTeX install*
-- ☐ **T6.1** Final clean compile + page/element verification (needs LuaLaTeX).
-- ☐ **T6.2** Final-checklist pass (guidelines §17).
-- ☐ **T6.3** Commit `latex/book.pdf`, tag `v1.0.0`, push.
+## Phase 6 — Ship (M6) — ✅ complete
+- ☑ **T6.1** Final clean compile + page/element verification. Built on TeX Live
+  LuaLaTeX; `book.pdf` = 15 pp (≥14, PRD K1 ✓), `book_generated.pdf` = 12 pp.
+  Verified visually: cover, TOC, headers/footers, image, Python graph, table,
+  boxed formula, BiDi chapter, TikZ, linked bibliography — all present with
+  correct Hebrew RTL / English LTR.
+- ☑ **T6.2** Final-checklist pass (guidelines §17).
+- ☑ **T6.3** Committed `latex/book.pdf` + `book_generated.pdf`, tagged `v1.0.0`,
+  pushed.
+
+> **Compile notes (host setup):** LuaLaTeX engine = TeX Live (`texlive-luatex`
+> + friends), Hebrew font = David CLM from `fonts-culmus`. Two manual steps were
+> needed: (1) `luabidi.sty` is absent from Ubuntu's TeX Live, so the language
+> layer was switched from polyglossia+luabidi to **babel `bidi=basic`** (which
+> also fixed reversed embedded-English runs); (2) the build needs the `culmus`
+> Hebrew mono/sans families for `\texttt`/`\textsf` inside Hebrew.
 
 ---
 

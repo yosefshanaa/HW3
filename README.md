@@ -50,8 +50,9 @@ PRDs in [`docs/`](docs/).
 
 ## Installation
 
-Prerequisites: **`uv`**, and a **LuaLaTeX** engine (MiKTeX recommended; TeX Live
-works too) for the final compile.
+Prerequisites: **`uv`**, and a **LuaLaTeX** engine for the final compile. On
+Ubuntu/WSL, **TeX Live** is the reliable choice (the prebuilt MiKTeX `.deb`
+targets older releases and won't satisfy dependencies on Ubuntu 25.10+).
 
 ```bash
 # 1. Python deps (uv is mandatory; it fetches Python 3.12 automatically)
@@ -60,9 +61,17 @@ uv sync --extra dev
 # 2. Secrets
 cp .env-example .env        # then edit .env and set OPENAI_API_KEY
 
-# 3. LaTeX engine (Ubuntu/WSL example — MiKTeX)
-#    Install MiKTeX so `lualatex` and `biber` are on PATH (see docs/PLAN.md).
+# 3. LaTeX engine + Hebrew font (Ubuntu/WSL). `fonts-culmus` provides David CLM.
+sudo apt-get install -y texlive-luatex texlive-latex-recommended \
+  texlive-latex-extra texlive-lang-other texlive-bibtex-extra \
+  texlive-pictures texlive-fonts-recommended texlive-fonts-extra \
+  biber fonts-culmus
 ```
+
+> **Hebrew/English BiDi:** the book uses **babel `bidi=basic`** (not
+> polyglossia) for bidirectional typesetting — its Unicode bidi engine keeps
+> embedded English (LTR) runs upright inside the Hebrew (RTL) text. `luabidi`
+> is not required and is absent from Ubuntu's TeX Live.
 
 ## Usage
 
@@ -80,11 +89,19 @@ uv run startup-book content
 uv run startup-book --version
 ```
 
-Compile the curated book directly (no Python needed):
+Compile the books directly (no Python needed):
 
 ```bash
-cd latex && ./build.sh      # lualatex → biber → lualatex → lualatex → book.pdf
+cd latex
+./build.sh                  # → book.pdf            (curated, 15 pp)
+./build.sh main_generated   # → book_generated.pdf  (crew-produced, 12 pp)
+# pipeline: lualatex → biber → lualatex → lualatex
 ```
+
+Both compiled PDFs are committed: **`latex/book.pdf`** is the primary 15-page
+deliverable (every required element, curated for depth); **`latex/book_generated.pdf`**
+is the crew-produced variant (live CrewAI prose interleaved with the required
+elements) kept as evidence of genuine agent production.
 
 ## Configuration
 
