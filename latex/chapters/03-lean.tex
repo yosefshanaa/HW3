@@ -17,17 +17,18 @@
 
 \begin{figure}[h]
   \centering
+  \entikz{% LTR context so babel bidi doesn't reorder the node labels
   \begin{tikzpicture}[every node/.style={font=\small\itshape}]
-    \node[draw, circle, minimum size=1.5cm, fill=brandblue!10] (build) at (0,0) {\en{Build}};
-    \node[draw, circle, minimum size=1.5cm, fill=brandgreen!10] (measure) at (3.4,-2.2) {\en{Measure}};
-    \node[draw, circle, minimum size=1.5cm, fill=brandred!10] (learn) at (-3.4,-2.2) {\en{Learn}};
+    \node[draw, circle, minimum size=1.5cm, fill=brandblue!10] (build) at (0,0) {Build};
+    \node[draw, circle, minimum size=1.5cm, fill=brandgreen!10] (measure) at (3.4,-2.2) {Measure};
+    \node[draw, circle, minimum size=1.5cm, fill=brandred!10] (learn) at (-3.4,-2.2) {Learn};
     \draw[-{Stealth[length=3mm]}, very thick, brandblue]
-      (build) to[bend left=20] node[right=2pt]{\en{Product}} (measure);
+      (build) to[bend left=20] node[right=2pt]{Product} (measure);
     \draw[-{Stealth[length=3mm]}, very thick, brandgreen]
-      (measure) to[bend left=20] node[below=2pt]{\en{Data}} (learn);
+      (measure) to[bend left=20] node[below=2pt]{Data} (learn);
     \draw[-{Stealth[length=3mm]}, very thick, brandred]
-      (learn) to[bend left=20] node[left=2pt]{\en{Ideas}} (build);
-  \end{tikzpicture}
+      (learn) to[bend left=20] node[left=2pt]{Ideas} (build);
+  \end{tikzpicture}}
   \caption{לולאת \en{Build--Measure--Learn} — מנוע הלמידה של ה-\en{Lean Startup},
   משורטטת ב-\en{TikZ}.}
   \label{fig:bml}

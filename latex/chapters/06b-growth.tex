@@ -17,6 +17,27 @@
 שנדון בפרק~\ref{chap:economics}. ניסיון להפעיל את שלושת המנועים בו-זמנית מפזר
 את המאמץ; עדיף למקד באחד ולמצותו.
 
+\begin{figure}[h]
+\centering
+% English-only node labels inside an LTR (\entikz) context: babel bidi=basic
+% otherwise reorders the labels across the picture. Hebrew goes in the caption.
+\entikz{%
+\begin{tikzpicture}[every node/.style={font=\sffamily,align=center}]
+  \node[draw=brandblue, fill=brandblue!8, rounded corners, minimum width=3.2cm,
+        minimum height=1.7cm] (sticky) at (0,0)
+        {{\bfseries\large\color{brandblue}Sticky}\\[3pt]{\small retention}};
+  \node[draw=brandgreen, fill=brandgreen!8, rounded corners, minimum width=3.2cm,
+        minimum height=1.7cm] (viral) at (4,0)
+        {{\bfseries\large\color{brandgreen}Viral}\\[3pt]{\small viral coefficient}};
+  \node[draw=brandred, fill=brandred!8, rounded corners, minimum width=3.2cm,
+        minimum height=1.7cm] (paid) at (8,0)
+        {{\bfseries\large\color{brandred}Paid}\\[3pt]{\small LTV > CAC}};
+\end{tikzpicture}}
+\caption{שלושת מנועי הצמיחה — \en{Sticky} (שימור גבוה), \en{Viral} (כל משתמש מביא
+משתמשים) ו-\en{Paid} (מימון רכישה מתוך רווח). כל מנוע נמדד במדד-על אחר ומחייב מיקוד נפרד.}
+\label{fig:engines}
+\end{figure}
+
 \section{התאמת ערוץ למוצר}
 
 לכל מוצר מתאים מספר מצומצם של ערוצי הפצה, ולרוב ערוץ דומיננטי יחיד. גובה מחיר
@@ -33,3 +54,8 @@
 לאורך זמן — ורק לאחר שהיא משתטחת ברמה בריאה כדאי ללחוץ על דוושת הגז של הרכישה.
 צמיחה מוקדמת מדי, בטרם הושגה אחיזה, מייקרת את הכישלון ומסתירה את הבעיה האמיתית
 במקום לפתור אותה.
+
+\begin{takeaway}
+בחרו מנוע צמיחה \emph{אחד} שמתאים למבנה העלויות שלכם, ודאו אחיזה לפני שמאיצים,
+ואל תעתיקו את ערוץ ההפצה של חברה אחרת — מה שעובד עבורה אינו בהכרח כלכלי עבורכם.
+\end{takeaway}

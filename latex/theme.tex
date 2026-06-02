@@ -6,6 +6,13 @@
 
 \usepackage{titlesec}
 
+% --- BiDi-safe TikZ wrapper --------------------------------------------------
+% babel bidi=basic reorders node text ACROSS a multi-node picture (only the
+% first node keeps its text). Typesetting the whole picture in an LTR (english)
+% context fixes it. Node labels must therefore be English — put the Hebrew
+% explanation in the figure caption. Usage: \entikz{ \begin{tikzpicture}... }.
+\newcommand{\entikz}[1]{\foreignlanguage{english}{#1}}
+
 % --- Extended palette --------------------------------------------------------
 \definecolor{ink}{HTML}{1A2433}        % near-black for sub-headings
 \definecolor{panel}{HTML}{EEF2F8}      % soft blue tint (callouts)

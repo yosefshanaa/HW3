@@ -6,19 +6,23 @@
 
 \begin{figure}[h]
   \centering
+  % English labels + explicit coordinates inside an LTR (\entikz) context, so
+  % babel bidi keeps the labels in their boxes. Hebrew meaning is in the caption.
+  \entikz{%
   \begin{tikzpicture}[
-      box/.style={draw, rounded corners, minimum width=2.7cm, minimum height=1cm,
-                  align=center, font=\small, fill=brandblue!8},
+      box/.style={draw=brandred, rounded corners, minimum width=2.6cm, minimum height=1.1cm,
+                  align=center, font=\small, fill=brandred!8},
       arr/.style={-{Stealth[length=3mm]}, very thick, brandred}]
-    \node[box] (need) {אין צורך\\בשוק};
-    \node[box, right=1.1cm of need] (cash) {אזל\\המזומן};
-    \node[box, right=1.1cm of cash] (team) {צוות\\לא מתאים};
-    \node[box, right=1.1cm of team] (comp) {הודחנו\\בתחרות};
+    \node[box] (need) at (0,0)   {No market\\need};
+    \node[box] (cash) at (3.3,0) {Ran out\\of cash};
+    \node[box] (team) at (6.6,0) {Wrong\\team};
+    \node[box] (comp) at (9.9,0) {Out-\\competed};
     \draw[arr] (need) -- (cash);
     \draw[arr] (cash) -- (team);
     \draw[arr] (team) -- (comp);
-  \end{tikzpicture}
-  \caption{שרשרת הסיכונים השכיחה לכישלון סטארט-אפ (שורטט ב-\en{TikZ}).}
+  \end{tikzpicture}}
+  \caption{שרשרת הסיכונים השכיחה לכישלון סטארט-אפ — היעדר צורך בשוק, אזילת מזומן,
+  צוות לא מתאים ותבוסה בתחרות (לפי \en{CB Insights}; שורטט ב-\en{TikZ}).}
   \label{fig:funnel}
 \end{figure}
 
