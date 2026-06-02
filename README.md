@@ -89,19 +89,24 @@ uv run startup-book content
 uv run startup-book --version
 ```
 
-Compile the books directly (no Python needed):
+Compile the book directly (no Python needed):
 
 ```bash
-cd latex
-./build.sh                  # → book.pdf            (curated, 15 pp)
-./build.sh main_generated   # → book_generated.pdf  (crew-produced, 12 pp)
-# pipeline: lualatex → biber → lualatex → lualatex
+cd latex && ./build.sh      # → book.pdf  (pipeline: lualatex → biber → lualatex → lualatex)
 ```
 
-Both compiled PDFs are committed: **`latex/book.pdf`** is the primary 15-page
-deliverable (every required element, curated for depth); **`latex/book_generated.pdf`**
-is the crew-produced variant (live CrewAI prose interleaved with the required
-elements) kept as evidence of genuine agent production.
+**`latex/book.pdf`** is the single finished deliverable (14 pages, ≥14 required):
+a fully designed mini-book — TikZ chapter banners, callout boxes, highlighted
+formulas, five TikZ diagrams, a redesigned cover, and a closing **colophon**
+crediting the CrewAI pipeline that produced the content.
+
+The crew's raw output is retained as **evidence** that the agents genuinely ran:
+the per-chapter prose in `latex/generated/` and the run logs in `results/`. That
+prose can be compiled into a separate variant for inspection (not a deliverable):
+
+```bash
+cd latex && ./build.sh main_generated   # → book_generated.pdf (crew prose; evidence only)
+```
 
 ## Configuration
 

@@ -49,9 +49,11 @@ config/secrets.json
 *.snm
 *.vrb
 *.xdv
-# Intermediate full-document PDFs — the canonical deliverables are book*.pdf
+# Intermediate full-document PDFs — the single deliverable is latex/book.pdf.
 latex/main.pdf
 latex/main_generated.pdf
+# Crew variant is buildable evidence (./build.sh main_generated), not shipped.
+latex/book_generated.pdf
 
 # ---------- OS / editor ----------
 .DS_Store

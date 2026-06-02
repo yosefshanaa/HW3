@@ -4,11 +4,14 @@
 Status keys: ☐ not started · ◐ in progress · ☑ done. Owner: `dev` (solo) /
 `ai` (AI-assisted). Each task lists its **Definition of Done (DoD)**.
 
-> **Overall:** ✅ **All phases complete (v1.0.0).** Software, book source, crew,
-> tests at 95.9% coverage, docs, and the final compile are done. Both books are
-> compiled with LuaLaTeX (TeX Live): `book.pdf` (15 pp, curated) and
-> `book_generated.pdf` (12 pp, crew-produced), with correct Hebrew RTL /
-> English LTR bidirectional typesetting.
+> **Overall:** ✅ **All phases complete (v1.1.0).** Software, book source, crew,
+> tests at 95.9% coverage, docs, and the final compile are done. The single
+> finished deliverable is `latex/book.pdf` (14 pp, ≥14 required) — fully
+> redesigned (TikZ chapter banners, callouts, highlighted formulas, five TikZ
+> diagrams, colophon crediting the crew), compiled with LuaLaTeX (TeX Live) and
+> correct Hebrew RTL / English LTR typesetting. The crew's raw output
+> (`latex/generated/`, `results/`) is retained as evidence and is buildable into
+> a separate variant (`./build.sh main_generated`).
 
 ## Phase 0 — Planning (M0)
 - ☑ **T0.1** Initialise repo, scaffold, `.gitignore`, license, README stub.
