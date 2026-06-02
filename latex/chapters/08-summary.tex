@@ -16,6 +16,22 @@
   \item \textbf{סיכונים:} בדוק בכל רגע את ההשערה המסוכנת ביותר, בזול ובמהירות.
 \end{enumerate}
 
+\begin{figure}[h]
+\centering
+\entikz{% LTR context so babel bidi keeps the milestone labels in place
+\begin{tikzpicture}[
+    ms/.style={circle, draw=brandblue, fill=brandblue!15, minimum size=0.55cm, inner sep=0pt},
+    lbl/.style={font=\sffamily\small, text=ink, align=center}]
+  \draw[line width=2pt, brandblue!45, -{Stealth[length=3.5mm]}] (-0.4,0) -- (10.6,0);
+  \foreach \x/\name in {0/Problem, 2.5/MVP, 5/PMF, 7.5/Growth, 10/Scale} {
+    \node[ms] at (\x,0) {};
+    \node[lbl, above=7pt] at (\x,0) {\name};}
+\end{tikzpicture}}
+\caption{מפת הדרכים של הסטארט-אפ: מאימות ה\emph{בעיה}, דרך \en{MVP} ולולאת הלמידה,
+אל התאמת מוצר-שוק (\en{PMF}), צמיחה (\en{Growth}) והרחבה (\en{Scale}).}
+\label{fig:roadmap}
+\end{figure}
+
 \section{מילה אחרונה}
 
 הכלים שהוצגו — מתודולוגיית הלקוחות, הלולאה הרזה, כלכלת היחידה וניהול הסיכונים —

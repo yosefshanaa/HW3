@@ -1,0 +1,39 @@
+% colophon.tex — closing page: how this book was produced (CrewAI credit).
+\clearpage
+\thispagestyle{empty}
+\vspace*{\fill}
+
+\begin{center}
+{\color{brandblue}\rule{0.4\textwidth}{1.2pt}}\\[1.0em]
+{\sffamily\bfseries\Large\color{brandblue}קולופון — על אופן ההפקה}\\[1.4em]
+\end{center}
+
+% Agent pipeline (TikZ, wrapped in \entikz so babel bidi keeps the labels).
+\begin{center}
+\entikz{%
+\begin{tikzpicture}[every node/.style={font=\sffamily\small},
+    ag/.style={draw=brandblue, fill=brandblue!8, rounded corners,
+               minimum width=2.5cm, minimum height=0.95cm, align=center},
+    ar/.style={-{Stealth[length=2.5mm]}, thick, brandblue}]
+  \node[ag] (r) at (0,0)   {Researcher};
+  \node[ag] (w) at (3,0)   {Writer};
+  \node[ag] (v) at (6,0)   {Reviewer};
+  \node[ag] (l) at (9,0)   {LaTeX};
+  \draw[ar] (r) -- (w);  \draw[ar] (w) -- (v);  \draw[ar] (v) -- (l);
+\end{tikzpicture}}
+\end{center}
+\vspace{0.4em}
+
+\begin{takeaway}[כיצד נוצר הספר]
+תוכן הספר נוצר על ידי צוות סוכני בינה מלאכותית (\en{CrewAI}) הפועלים בשרשרת:
+\en{Researcher} אוסף עובדות, \en{Writer} מנסח פרקים, \en{Reviewer} מבקר ומשפר,
+ו-\en{LaTeX Engineer} ממיר לפורמט. הטקסט המוצג כאן הורחב ולוטש על בסיס תוצרי
+הסוכנים. ההפקה בוצעה ב-\en{LuaLaTeX} עם \en{babel} (\en{bidi=basic}) לטיפוגרפיה
+דו-כיוונית, \en{TikZ} לתרשימים, \en{matplotlib} לגרפים ו-\en{biblatex} לביבליוגרפיה.
+\end{takeaway}
+
+\begin{center}
+{\small\color{ink}\en{Python} \,$\cdot$\, \en{CrewAI} \,$\cdot$\, \en{LuaLaTeX}
+\,$\cdot$\, \en{babel} \,$\cdot$\, \en{TikZ} \,$\cdot$\, \en{biber}}
+\end{center}
+\vspace*{\fill}
