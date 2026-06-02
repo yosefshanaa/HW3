@@ -1,0 +1,33 @@
+% =============================================================================
+% main.tex — root document for the startup mini-book.
+% Build (assignment §13.2):  lualatex -> lualatex -> biber -> lualatex -> lualatex
+% or simply: ./build.sh
+% =============================================================================
+\documentclass[11pt,a4paper,oneside]{report}
+
+\input{preamble}
+
+\begin{document}
+
+% --- Cover (FR-B1) ----------------------------------------------------------
+\input{cover}
+
+% --- Table of contents (FR-B2) ----------------------------------------------
+\tableofcontents
+\thispagestyle{empty}
+\clearpage
+
+% --- Chapters ---------------------------------------------------------------
+\input{chapters/01-intro}
+\input{chapters/02-idea}
+\input{chapters/03-lean}      % BiDi chapter (FR-B7)
+\input{chapters/04-pmf}
+\input{chapters/05-team}
+\input{chapters/06-economics} % math formula (FR-B6) + table (FR-B5) + graph (FR-B4)
+\input{chapters/07-pitfalls}
+\input{chapters/08-summary}
+
+% --- Bibliography (FR-B9) ---------------------------------------------------
+\printbibliography[heading=bibintoc]
+
+\end{document}
