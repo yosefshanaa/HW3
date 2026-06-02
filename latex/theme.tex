@@ -1,0 +1,52 @@
+% =============================================================================
+% theme.tex — visual design layer: extended palette, chapter/section styling,
+% callout boxes and highlighted formula boxes. Kept separate from preamble so
+% each file stays < 150 LOC. Loaded after xcolor + tikz, before hyperref.
+% =============================================================================
+
+\usepackage{titlesec}
+
+% --- Extended palette --------------------------------------------------------
+\definecolor{ink}{HTML}{1A2433}        % near-black for sub-headings
+\definecolor{panel}{HTML}{EEF2F8}      % soft blue tint (callouts)
+\definecolor{panelgreen}{HTML}{E9F3EE} % soft green tint (formulas)
+\definecolor{rulegrey}{HTML}{C9D3E0}   % light rule under chapter titles
+
+% --- Chapter banner (titlesec) ----------------------------------------------
+% A coloured "פרק N" chip, a large brand-blue title, and a thin accent rule.
+\titleformat{\chapter}[display]
+  {\sffamily\bfseries\raggedleft}
+  {\colorbox{brandblue}{\color{white}\sffamily\bfseries\large\,פרק~\thechapter\,}}
+  {0.7ex}
+  {\color{brandblue}\Huge\raggedleft}
+  [\vspace{0.6ex}{\color{rulegrey}\titlerule[1.2pt]}]
+\titlespacing*{\chapter}{0pt}{6pt}{1.4ex}
+
+% --- Section / subsection ----------------------------------------------------
+\titleformat*{\section}{\sffamily\bfseries\large\color{brandblue}}
+\titleformat*{\subsection}{\sffamily\bfseries\color{ink}}
+
+% --- Coloured callout / formula boxes ----------------------------------------
+% Built from \fcolorbox over a captured savebox (NOT tcolorbox, whose frame
+% mis-places under babel RTL). The minipage content inherits RTL direction.
+% A savebox captures the body first so minipage's internal grouping can't close
+% the frame argument early.
+\newsavebox{\tkbox}
+\newsavebox{\fmbox}
+
+% \begin{takeaway} ... \end{takeaway}  (optional [custom title]).
+\newenvironment{takeaway}[1][שורה תחתונה]
+  {\par\smallskip\begin{lrbox}{\tkbox}%
+   \begin{minipage}{0.90\linewidth}%
+   {\sffamily\bfseries\color{brandblue}#1.}\ }
+  {\end{minipage}\end{lrbox}%
+   \begin{center}\setlength{\fboxsep}{9pt}%
+   \fcolorbox{brandblue}{panel}{\usebox{\tkbox}}\end{center}\smallskip}
+
+% \begin{formulabox} \[ ... \] \end{formulabox}
+\newenvironment{formulabox}
+  {\par\smallskip\begin{lrbox}{\fmbox}%
+   \begin{minipage}{0.60\linewidth}\centering}
+  {\end{minipage}\end{lrbox}%
+   \begin{center}\setlength{\fboxsep}{8pt}%
+   \fcolorbox{brandgreen}{panelgreen}{\usebox{\fmbox}}\end{center}\smallskip}
