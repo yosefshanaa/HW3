@@ -49,6 +49,9 @@ config/secrets.json
 *.snm
 *.vrb
 *.xdv
+# Intermediate full-document PDFs — the canonical deliverables are book*.pdf
+latex/main.pdf
+latex/main_generated.pdf
 
 # ---------- OS / editor ----------
 .DS_Store
