@@ -1,0 +1,34 @@
+{
+  "version": "1.00",
+  "book": {
+    "title_he": "כיצד לבנות סטארט-אפ נכון",
+    "title_en": "How to Correctly Build a Start-up",
+    "subtitle_he": "מדריך מתומצת: מרעיון לחברה",
+    "author": "yosefshanaa",
+    "course_he": "ייצור המוני של סוכני בינה מלאכותית",
+    "lecturer_he": "ד\"ר יורם סגל",
+    "language": "he",
+    "chapters": [
+      { "id": "intro", "heading_he": "מבוא: מהו סטארט-אפ ולמה רובם נכשלים", "language": "he" },
+      { "id": "idea", "heading_he": "אימות הרעיון ומציאת בעיה אמיתית", "language": "he" },
+      { "id": "lean", "heading_he": "שיטת ה-Lean Startup ולולאת Build–Measure–Learn", "language": "mixed" },
+      { "id": "pmf", "heading_he": "לקוחות מוקדמים והתאמת מוצר-שוק (Product–Market Fit)", "language": "mixed" },
+      { "id": "team", "heading_he": "בניית הצוות המייסד", "language": "he" },
+      { "id": "economics", "heading_he": "כלכלת יחידה וגיוס הון", "language": "he" },
+      { "id": "pitfalls", "heading_he": "טעויות נפוצות וניהול סיכונים", "language": "he" },
+      { "id": "summary", "heading_he": "סיכום ומפת דרכים", "language": "he" }
+    ]
+  },
+  "llm": {
+    "model": "gpt-4o-mini",
+    "temperature": 0.4,
+    "max_tokens": 2000,
+    "cost_per_1m_input_usd": 0.15,
+    "cost_per_1m_output_usd": 0.60
+  },
+  "build": {
+    "engine": "lualatex",
+    "passes": 4,
+    "use_biber": true
+  }
+}
