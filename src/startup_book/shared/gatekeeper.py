@@ -14,7 +14,7 @@ from collections.abc import Callable
 from typing import TypeVar
 
 from startup_book.shared.clock import Clock, SystemClock
-from startup_book.shared.errors import GatekeeperError, RateLimitExceeded
+from startup_book.shared.errors import GatekeeperError, RateLimitExceededError
 from startup_book.shared.models import QueueStatus, RateLimitConfig
 
 T = TypeVar("T")
@@ -49,7 +49,7 @@ class ApiGatekeeper:
         """Run ``fn`` through admission control and retry handling.
 
         Raises:
-            RateLimitExceeded: If the pending queue is full (backpressure).
+            RateLimitExceededError: If the pending queue is full (backpressure).
             GatekeeperError: If the call still fails after ``max_retries``.
         """
         self._admit()
@@ -75,7 +75,7 @@ class ApiGatekeeper:
     def _admit(self) -> None:
         """Block (via the clock) until the rate limit allows one more call."""
         if self._pending >= self._cfg.max_queue_depth:
-            raise RateLimitExceeded("gatekeeper queue is full (backpressure)")
+            raise RateLimitExceededError("gatekeeper queue is full (backpressure)")
         self._pending += 1
         self._status.queued = self._pending
         try:

@@ -21,7 +21,7 @@ class GatekeeperError(StartupBookError):
     """An external call failed permanently after passing through the gatekeeper."""
 
 
-class RateLimitExceeded(GatekeeperError):
+class RateLimitExceededError(GatekeeperError):
     """The request could not be served because the queue is full (backpressure)."""
 
 
