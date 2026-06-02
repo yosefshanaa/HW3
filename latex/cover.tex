@@ -1,26 +1,39 @@
 % cover.tex — title / cover page (FR-B1): topic, author, date, course, lecturer.
 \begin{titlepage}
-\centering
 \thispagestyle{empty}
+\centering
+\vspace*{1.1cm}
 
-\vspace*{1.2cm}
-{\Huge\bfseries כיצד לבנות סטארט-אפ נכון\par}
-\vspace{0.4cm}
-{\Large מדריך מתומצת: מרעיון לחברה\par}
-\vspace{0.3cm}
+% --- Title banner (TikZ, FR-B8) ----------------------------------------------
+\begin{tikzpicture}
+  \node[fill=brandblue, rounded corners=8pt, inner xsep=26pt, inner ysep=20pt,
+        text width=0.80\textwidth, align=center] (title) {%
+    {\sffamily\bfseries\Huge\color{white}כיצד לבנות סטארט-אפ נכון}\\[8pt]
+    {\sffamily\Large\color{white}מדריך מתומצת: מרעיון לחברה}};
+  \draw[brandred, line width=3.5pt, line cap=round]
+        ([yshift=-7pt]title.south west) -- ([yshift=-7pt]title.south east);
+\end{tikzpicture}
+
+\vspace{0.5cm}
 {\large\en{\itshape How to Correctly Build a Start-up}\par}
 
-\vspace{1.0cm}
-\includegraphics[width=0.66\textwidth]{illustration.png}\par
+\vspace{0.9cm}
+\includegraphics[width=0.60\textwidth]{illustration.png}\par
+\vspace{0.8cm}
 
-\vspace{1.0cm}
-\begin{tabular}{r@{\hskip 1em}l}
-  \textbf{מחבר:}  & \en{yosefshanaa} \\[4pt]
-  \textbf{קורס:}  & ייצור המוני של סוכני בינה מלאכותית \\[4pt]
-  \textbf{מרצה:}  & ד״ר יורם סגל \\[4pt]
-  \textbf{תאריך:} & \today \\
-\end{tabular}
+% --- Metadata panel ----------------------------------------------------------
+{\color{brandblue}\rule{0.55\textwidth}{1.2pt}}\par
+\vspace{0.55cm}
+{\large
+\begin{tabular}{r@{\hskip 1.2em}l}
+  {\sffamily\bfseries\color{brandblue}מחבר:}  & \en{yosefshanaa} \\[5pt]
+  {\sffamily\bfseries\color{brandblue}קורס:}  & ייצור המוני של סוכני בינה מלאכותית \\[5pt]
+  {\sffamily\bfseries\color{brandblue}מרצה:}  & ד״ר יורם סגל \\[5pt]
+  {\sffamily\bfseries\color{brandblue}תאריך:} & \today \\
+\end{tabular}\par}
 
 \vfill
-{\small נוצר באמצעות צוות סוכני \en{CrewAI} והופק ב־\en{LuaLaTeX}.\par}
+{\small נוצר באמצעות צוות סוכני \en{CrewAI}
+(\en{Researcher\,$\to$\,Writer\,$\to$\,Reviewer\,$\to$\,LaTeX})
+והופק ב־\en{LuaLaTeX}.\par}
 \end{titlepage}
