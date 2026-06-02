@@ -1,6 +1,6 @@
 [project]
 name = "startup-book"
-version = "1.00"
+version = "1.10"
 description = "CrewAI multi-agent system that writes and typesets a Hebrew/English startup mini-book via LuaLaTeX."
 readme = "README.md"
 requires-python = ">=3.12,<3.14"

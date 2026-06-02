@@ -5,8 +5,8 @@ from __future__ import annotations
 from startup_book.shared import version
 
 
-def test_version_is_one_point_zero() -> None:
-    assert version.__version__ == "1.00"
+def test_version_is_current() -> None:
+    assert version.__version__ == "1.10"
 
 
 def test_same_major_is_compatible() -> None:
