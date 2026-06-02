@@ -6,21 +6,25 @@
 % --- Page geometry -----------------------------------------------------------
 \usepackage[a4paper,margin=2.5cm,headheight=15pt]{geometry}
 
-% --- Fonts + Hebrew/English bidirectional typesetting (polyglossia) ----------
+% --- Fonts + Hebrew/English bidirectional typesetting (babel, bidi=basic) -----
 \usepackage{fontspec}
-\usepackage{polyglossia}
-\setmainlanguage{hebrew}
-\setotherlanguage{english}
+% babel's Unicode bidi engine keeps embedded LTR (English) runs upright inside
+% RTL (Hebrew) text and reverses RTL correctly. This is the modern, robust route
+% for Hebrew under LuaLaTeX; it replaces polyglossia+luabidi, whose LuaTeX bidi
+% mirror-reversed every embedded English run.
+\usepackage[bidi=basic]{babel}
+\babelprovide[import,main]{hebrew}
+\babelprovide[import]{english}
 
-% Hebrew main font. David CLM ships with the `culmus` package (MiKTeX can
-% install it on the fly). If unavailable, replace with another Hebrew OpenType
-% font, e.g. "Noto Sans Hebrew" or "Frank Ruehl CLM" — this is the ONLY line to
-% change for fonts.
-\newfontfamily\hebrewfont[Script=Hebrew]{David CLM}
-\setmainfont[Script=Hebrew]{David CLM}
-% Latin script font for embedded English / code / math.
-\newfontfamily\englishfont{Latin Modern Roman}
-\newfontfamily\codefont{Latin Modern Mono}
+% Hebrew fonts ship with the `culmus` package. This is the ONLY block to change
+% for fonts — e.g. swap "David CLM" for "Frank Ruehl CLM" or "Noto Sans Hebrew".
+\babelfont{rm}[Script=Hebrew]{David CLM}       % Hebrew serif (main body)
+\babelfont{sf}[Script=Hebrew]{Nachlieli CLM}   % Hebrew sans
+\babelfont{tt}[Script=Hebrew]{Miriam Mono CLM} % Hebrew monospace
+% Latin-script fonts for embedded English / code / math.
+\babelfont[english]{rm}{Latin Modern Roman}
+\babelfont[english]{tt}{Latin Modern Mono}
+\newfontfamily\codefont{Latin Modern Mono}     % inline English code snippets
 
 % --- Colours -----------------------------------------------------------------
 \usepackage{xcolor}
@@ -68,7 +72,8 @@
 }
 
 % --- Convenience macros ------------------------------------------------------
-% \en{...} typesets an embedded English (LTR) span inside Hebrew (RTL) text.
-\newcommand{\en}[1]{\textenglish{#1}}
+% \en{...} typesets an embedded English (LTR) span inside Hebrew (RTL) text;
+% babel keeps it upright and switches to the Latin font + English hyphenation.
+\newcommand{\en}[1]{\foreignlanguage{english}{#1}}
 % \term{English term} — emphasised inline English term.
-\newcommand{\term}[1]{\textenglish{\textit{#1}}}
+\newcommand{\term}[1]{\foreignlanguage{english}{\textit{#1}}}
