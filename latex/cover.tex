@@ -25,11 +25,16 @@
 {\color{brandblue}\rule{0.55\textwidth}{1.2pt}}\par
 \vspace{0.55cm}
 {\large
-\begin{tabular}{r@{\hskip 1.2em}l}
-  {\sffamily\bfseries\color{brandblue}מחבר:}  & \en{yosefshanaa} \\[5pt]
-  {\sffamily\bfseries\color{brandblue}קורס:}  & ייצור המוני של סוכני בינה מלאכותית \\[5pt]
-  {\sffamily\bfseries\color{brandblue}מרצה:}  & ד״ר יורם סגל \\[5pt]
-  {\sffamily\bfseries\color{brandblue}תאריך:} & \today \\
+% RTL label/value block. babel bidi=basic typesets a tabular left-to-right, so
+% to get the Hebrew layout (labels on the RIGHT, values to their LEFT) we put
+% the value in the first (left) column and the label in the second (right)
+% column. Both columns are right-aligned: labels sit against the page margin and
+% each value's right edge meets the gap beside its label.
+\begin{tabular}{r@{\hskip 1.2em}r}
+  \en{yosefshanaa}                   & {\sffamily\bfseries\color{brandblue}מחבר:}  \\[5pt]
+  ייצור המוני של סוכני בינה מלאכותית & {\sffamily\bfseries\color{brandblue}קורס:}  \\[5pt]
+  ד״ר יורם סגל                       & {\sffamily\bfseries\color{brandblue}מרצה:}  \\[5pt]
+  \today                             & {\sffamily\bfseries\color{brandblue}תאריך:} \\
 \end{tabular}\par}
 
 \vfill
