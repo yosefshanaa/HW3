@@ -9,6 +9,7 @@ the network unmetered.
 from __future__ import annotations
 
 import logging
+import threading
 from collections import deque
 from collections.abc import Callable
 from typing import TypeVar
@@ -38,7 +39,10 @@ class ApiGatekeeper:
         self._clock = clock or SystemClock()
         self._minute_calls: deque[float] = deque()
         self._hour_calls: deque[float] = deque()
-        self._pending = 0
+        self._condition = threading.Condition()
+        self._active = 0
+        self._next_ticket = 0
+        self._serving_ticket = 0
         self._status = QueueStatus()
 
     def get_queue_status(self) -> QueueStatus:
@@ -53,7 +57,10 @@ class ApiGatekeeper:
             GatekeeperError: If the call still fails after ``max_retries``.
         """
         self._admit()
-        return self._run_with_retry(fn, *args, **kwargs)
+        try:
+            return self._run_with_retry(fn, *args, **kwargs)
+        finally:
+            self._release()
 
     # --- admission / sliding-window rate limiting ---------------------------
     def _prune(self, now: float) -> None:
@@ -72,26 +79,45 @@ class ApiGatekeeper:
             waits.append(_HOUR - (now - self._hour_calls[0]))
         return max(waits)
 
+    def _queued_locked(self) -> int:
+        """Return the number of calls waiting for admission."""
+        return max(self._next_ticket - self._serving_ticket, 0)
+
     def _admit(self) -> None:
-        """Block (via the clock) until the rate limit allows one more call."""
-        if self._pending >= self._cfg.max_queue_depth:
-            raise RateLimitExceededError("gatekeeper queue is full (backpressure)")
-        self._pending += 1
-        self._status.queued = self._pending
-        try:
+        """Wait for FIFO turn, rate-limit slot and concurrency capacity."""
+        with self._condition:
+            if self._queued_locked() >= self._cfg.max_queue_depth:
+                raise RateLimitExceededError("gatekeeper queue is full (backpressure)")
+            ticket = self._next_ticket
+            self._next_ticket += 1
+            self._status.queued = self._queued_locked()
+
+            while ticket != self._serving_ticket or self._active >= self._cfg.concurrent_max:
+                self._condition.wait()
+
             while True:
                 now = self._clock.now()
                 self._prune(now)
                 wait = self._wait_seconds(now)
                 if wait <= 0:
                     break
+                self._condition.release()
                 self._clock.sleep(wait)
+                self._condition.acquire()
+
             stamp = self._clock.now()
             self._minute_calls.append(stamp)
             self._hour_calls.append(stamp)
-        finally:
-            self._pending -= 1
-            self._status.queued = self._pending
+            self._active += 1
+            self._serving_ticket += 1
+            self._status.queued = self._queued_locked()
+            self._condition.notify_all()
+
+    def _release(self) -> None:
+        """Release one active external call slot."""
+        with self._condition:
+            self._active -= 1
+            self._condition.notify_all()
 
     # --- execution / retry ---------------------------------------------------
     def _run_with_retry(self, fn: Callable[..., T], *args: object, **kwargs: object) -> T:

@@ -6,11 +6,11 @@ from pathlib import Path
 
 import pytest
 
-from startup_book.services.crew_service import CrewService
+from startup_book.services.crew_service import CrewService, GatekeptLLM
 from startup_book.shared.config import ConfigManager
 from startup_book.shared.errors import CrewExecutionError
 from startup_book.shared.gatekeeper import ApiGatekeeper
-from startup_book.shared.models import BookContent, Chapter
+from startup_book.shared.models import BookContent, Chapter, RateLimitConfig
 
 
 class _Usage:
@@ -27,6 +27,18 @@ class _Result:
 def _service(config_dir: Path) -> CrewService:
     cm = ConfigManager(config_dir)
     return CrewService(cm, ApiGatekeeper(cm.rate_limit()))
+
+
+def _service_config() -> RateLimitConfig:
+    """Build a permissive gatekeeper config for LLM wrapper tests."""
+    return RateLimitConfig(
+        requests_per_minute=100,
+        requests_per_hour=1000,
+        concurrent_max=2,
+        retry_after_seconds=0,
+        max_retries=0,
+        max_queue_depth=10,
+    )
 
 
 def test_generate_content_fills_title_and_usage(config_dir: Path, monkeypatch) -> None:
@@ -74,3 +86,29 @@ def test_crew_failure_is_wrapped(config_dir: Path, monkeypatch) -> None:
 
 def test_extract_usage_handles_missing() -> None:
     assert CrewService._extract_usage(_Result(None, usage=None)).total_tokens == 0
+
+
+def test_gatekept_llm_routes_call_through_gatekeeper(fake_clock, monkeypatch) -> None:
+    gk = ApiGatekeeper(_service_config(), fake_clock)
+    calls = {"gatekeeper": 0, "llm": 0}
+
+    class FakeInnerLLM:
+        model = "gpt-4o-mini"
+        temperature = 0.0
+        provider = "openai"
+        stop: list[str] = []
+        additional_params: dict[str, object] = {}
+
+        def call(self, *args: object, **kwargs: object) -> str:
+            calls["llm"] += 1
+            return "ok"
+
+    def fake_execute(fn, *args: object, **kwargs: object) -> object:
+        calls["gatekeeper"] += 1
+        return fn(*args, **kwargs)
+
+    monkeypatch.setattr(gk, "execute", fake_execute)
+
+    llm = GatekeptLLM(gatekeeper=gk, inner=FakeInnerLLM())
+    assert llm.call("hello") == "ok"
+    assert calls == {"gatekeeper": 1, "llm": 1}

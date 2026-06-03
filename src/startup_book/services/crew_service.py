@@ -8,9 +8,12 @@ structured result into a :class:`BookContent`.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 
 from crewai import LLM, Crew, Process
+from crewai.llms.base_llm import BaseLLM
+from pydantic import PrivateAttr
 
 from startup_book.agents.definitions import build_agents
 from startup_book.agents.tasks import build_tasks
@@ -22,6 +25,57 @@ from startup_book.shared.models import BookContent, TokenUsage
 logger = logging.getLogger("startup_book.crew")
 
 
+class GatekeptLLM(BaseLLM):
+    """CrewAI LLM that routes every model call through the API gatekeeper."""
+
+    _gatekeeper: ApiGatekeeper = PrivateAttr()
+    _inner: LLM = PrivateAttr()
+
+    def __init__(self, *, gatekeeper: ApiGatekeeper, inner: LLM) -> None:
+        """Create the LLM and keep the gatekeeper outside serialized model data."""
+        super().__init__(
+            model=inner.model,
+            temperature=inner.temperature,
+            provider=inner.provider,
+            stop=inner.stop,
+            additional_params=inner.additional_params,
+        )
+        self._gatekeeper = gatekeeper
+        self._inner = inner
+
+    def call(self, *args: object, **kwargs: object) -> object:
+        """Execute CrewAI's synchronous LLM call through the gatekeeper."""
+        return self._gatekeeper.execute(self._inner.call, *args, **kwargs)
+
+    async def acall(self, *args: object, **kwargs: object) -> object:
+        """Execute CrewAI's async LLM call path through the same gatekeeper."""
+        return await asyncio.to_thread(self._gatekeeper.execute, self._inner.call, *args, **kwargs)
+
+    def supports_function_calling(self) -> bool:
+        """Delegate function-calling capability checks to the provider LLM."""
+        return self._inner.supports_function_calling()
+
+    def supports_stop_words(self) -> bool:
+        """Delegate stop-word capability checks to the provider LLM."""
+        return self._inner.supports_stop_words()
+
+    def get_context_window_size(self) -> int:
+        """Delegate context-window lookup to the provider LLM."""
+        return self._inner.get_context_window_size()
+
+    def supports_multimodal(self) -> bool:
+        """Delegate multimodal capability checks to the provider LLM."""
+        return self._inner.supports_multimodal()
+
+    def format_text_content(self, text: str) -> dict[str, object]:
+        """Delegate content formatting to the provider LLM."""
+        return self._inner.format_text_content(text)
+
+    def to_config_dict(self) -> dict[str, object]:
+        """Delegate config serialization to the provider LLM."""
+        return self._inner.to_config_dict()
+
+
 class CrewService:
     """Builds and runs the Researcher -> Writer -> Reviewer -> LaTeX crew."""
 
@@ -30,9 +84,12 @@ class CrewService:
         self._config = config
         self._gatekeeper = gatekeeper
 
-    def _build_llm(self) -> LLM:
+    def _build_llm(self) -> BaseLLM:
         """Construct the shared LLM from configuration (model + temperature)."""
-        return LLM(model=self._config.model(), temperature=self._config.temperature())
+        return GatekeptLLM(
+            gatekeeper=self._gatekeeper,
+            inner=LLM(model=self._config.model(), temperature=self._config.temperature()),
+        )
 
     def _build_crew(self) -> Crew:
         """Assemble the sequential crew from the agent and task factories."""
@@ -46,9 +103,9 @@ class CrewService:
         )
 
     def _run_crew(self, inputs: dict[str, str]) -> object:
-        """Run the crew's ``kickoff`` through the gatekeeper and return its output."""
+        """Run the crew and return its output; the LLM itself is gatekept."""
         crew = self._build_crew()
-        return self._gatekeeper.execute(crew.kickoff, inputs=inputs)
+        return crew.kickoff(inputs=inputs)
 
     def generate_content(self, topic: str | None = None) -> BookContent:
         """Run the pipeline and return the assembled :class:`BookContent`.

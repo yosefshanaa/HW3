@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
+
 import pytest
 
 from startup_book.shared.errors import GatekeeperError, RateLimitExceededError
@@ -37,6 +41,16 @@ class Flaky:
         return "ok"
 
 
+def wait_until(predicate) -> None:
+    """Wait briefly for a condition that depends on another test thread."""
+    deadline = time.monotonic() + 2
+    while time.monotonic() < deadline:
+        if predicate():
+            return
+        time.sleep(0.01)
+    raise AssertionError("condition was not reached before timeout")
+
+
 def test_under_limit_passes_through(fake_clock) -> None:
     gk = ApiGatekeeper(cfg(), fake_clock)
     assert [gk.execute(lambda v=i: v) for i in range(3)] == [0, 1, 2]
@@ -70,8 +84,52 @@ def test_retry_exhausted_raises(fake_clock) -> None:
     assert gk.get_queue_status().retried == 2
 
 
+def test_concurrent_limit_queues_until_active_call_finishes(fake_clock) -> None:
+    gk = ApiGatekeeper(cfg(concurrent_max=1, max_queue_depth=2), fake_clock)
+    first_started = threading.Event()
+    release_first = threading.Event()
+    second_started = threading.Event()
+
+    def first_call() -> str:
+        first_started.set()
+        release_first.wait(timeout=2)
+        return "first"
+
+    def second_call() -> str:
+        second_started.set()
+        return "second"
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        first = pool.submit(gk.execute, first_call)
+        assert first_started.wait(timeout=1)
+        second = pool.submit(gk.execute, second_call)
+        wait_until(lambda: gk.get_queue_status().queued == 1)
+        assert not second_started.is_set()
+
+        release_first.set()
+        assert first.result(timeout=2) == "first"
+        assert second.result(timeout=2) == "second"
+
+
 def test_full_queue_raises_backpressure(fake_clock) -> None:
-    gk = ApiGatekeeper(cfg(max_queue_depth=1), fake_clock)
-    gk._pending = 1  # simulate the queue already being full
-    with pytest.raises(RateLimitExceededError):
-        gk.execute(lambda: "x")
+    gk = ApiGatekeeper(cfg(concurrent_max=1, max_queue_depth=1), fake_clock)
+    first_started = threading.Event()
+    release_first = threading.Event()
+
+    def first_call() -> str:
+        first_started.set()
+        release_first.wait(timeout=2)
+        return "first"
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        first = pool.submit(gk.execute, first_call)
+        assert first_started.wait(timeout=1)
+        queued = pool.submit(gk.execute, lambda: "queued")
+        wait_until(lambda: gk.get_queue_status().queued == 1)
+
+        with pytest.raises(RateLimitExceededError):
+            gk.execute(lambda: "third")
+
+        release_first.set()
+        assert first.result(timeout=2) == "first"
+        assert queued.result(timeout=2) == "queued"
