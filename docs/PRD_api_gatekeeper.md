@@ -35,7 +35,7 @@ class ApiGatekeeper:
   - Retry transient failures up to `max_retries` with `retry_after_seconds`.
   - Log each call: timestamp, function, attempt, outcome, duration.
 - **Output:** the wrapped call's result, or a typed `GatekeeperError`
-  / `RateLimitExceeded` on exhaustion.
+  / `RateLimitExceededError` on exhaustion.
 
 ## 4. Config (`config/rate_limits.json`)
 ```json

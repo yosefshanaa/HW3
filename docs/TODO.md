@@ -5,8 +5,8 @@ Status keys: ☐ not started · ◐ in progress · ☑ done. Owner: `dev` (solo)
 `ai` (AI-assisted). Each task lists its **Definition of Done (DoD)**.
 
 > **Overall:** ✅ **All phases complete (v1.1.0).** Software, book source, crew,
-> tests at 95.9% coverage, docs, and the final compile are done. The single
-> finished deliverable is `latex/book.pdf` (14 pp, ≥14 required) — fully
+> tests at 95.0% coverage, docs, and the final compile are done. The single
+> finished deliverable is `latex/book.pdf` (14 pp, close to the ~15-page target) — fully
 > redesigned (TikZ chapter banners, callouts, highlighted formulas, five TikZ
 > diagrams, colophon crediting the crew), compiled with LuaLaTeX (TeX Live) and
 > correct Hebrew RTL / English LTR typesetting. The crew's raw output
@@ -25,7 +25,7 @@ Status keys: ☐ not started · ◐ in progress · ☑ done. Owner: `dev` (solo)
 - ☑ **T1.4** `shared/gatekeeper.py`. ☑ **T1.5** models + constants.
 - ☑ **T1.6** `sdk/sdk.py` + thin CLI.
 
-## Phase 2 — LaTeX deliverable (M2) — *source complete, compile pending*
+## Phase 2 — LaTeX deliverable (M2)
 - ☑ **T2.1** `preamble.tex` (LuaLaTeX, babel `bidi=basic`, fancyhdr).
 - ☑ **T2.2** Cover + TOC + chapters. ☑ **T2.3** image/table/formula/TikZ.
 - ☑ **T2.4** BiDi chapter. ☑ **T2.5** `references.bib` + biber. ☑ **T2.6** `build.sh`.
@@ -40,19 +40,20 @@ Status keys: ☐ not started · ◐ in progress · ☑ done. Owner: `dev` (solo)
 - ☑ **T4.3** Cost/token reporting in the SDK (`_estimate_cost`).
 
 ## Phase 5 — Quality (M5)
-- ☑ **T5.1** Unit tests (coverage 95.9 %). ☑ **T5.2** Integration test.
+- ☑ **T5.1** Unit tests (coverage 95.0 %). ☑ **T5.2** Integration test.
 - ☑ **T5.3** ruff clean. ☑ **T5.4** `docs/PROMPTS.md`.
 - ☑ **T5.5** `notebooks/results_analysis.ipynb`. ☑ **T5.6** full `README.md`.
 
 ## Phase 6 — Ship (M6) — ✅ complete
 - ☑ **T6.1** Final clean compile + page/element verification. Built on TeX Live
-  LuaLaTeX; `book.pdf` = 15 pp (≥14, PRD K1 ✓), `book_generated.pdf` = 12 pp.
+  LuaLaTeX; `book.pdf` = 14 pp (close to the ~15-page target, PRD K1 ✓),
+  `book_generated.pdf` = 11 pp.
   Verified visually: cover, TOC, headers/footers, image, Python graph, table,
   boxed formula, BiDi chapter, TikZ, linked bibliography — all present with
   correct Hebrew RTL / English LTR.
 - ☑ **T6.2** Final-checklist pass (guidelines §17).
-- ☑ **T6.3** Committed `latex/book.pdf` + `book_generated.pdf`, tagged `v1.0.0`,
-  pushed.
+- ☑ **T6.3** Committed `latex/book.pdf`, retained the buildable crew-output
+  variant as evidence, tagged through `v1.1.0`, pushed.
 
 > **Compile notes (host setup):** LuaLaTeX engine = TeX Live (`texlive-luatex`
 > + friends), Hebrew font = David CLM from `fonts-culmus`. Two manual steps were

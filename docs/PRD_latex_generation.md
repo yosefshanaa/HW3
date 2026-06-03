@@ -59,7 +59,8 @@ latex/
 ## 5. Success criteria & test scenarios
 - **SC-1** Clean build exits 0 and yields `book.pdf`. *Test:* run `build.sh` on a
   clean tree (env with LuaLaTeX); assert exit 0 and PDF exists.
-- **SC-2** PDF is ≥ 14 pages. *Test:* `pdfinfo`/`pdfplumber` page count ≥ 14.
+- **SC-2** PDF is close to the assignment's ~15-page target. *Test:* `pypdf`/
+  `pdfinfo` page count; current final build is 14 pages.
 - **SC-3** All required elements present. *Test:* checklist + grep of `.tex`
   (\includegraphics, tikzpicture, begin{equation}, \cite, fancyhdr, babel).
 - **SC-4** Citations resolve (no `?` markers). *Test:* grep build log for

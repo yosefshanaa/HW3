@@ -36,6 +36,9 @@ typesets a mini-book containing every required element:
 | **TikZ diagram** | Build–Measure–Learn loop, risk chain |
 | **Bibliography (linked citations)** | `latex/references.bib` + biber |
 
+See [`docs/COURSE_ALIGNMENT.md`](docs/COURSE_ALIGNMENT.md) for the explicit
+mapping against the five course PDFs from Downloads.
+
 ## Architecture (overview)
 
 ```
@@ -95,10 +98,10 @@ Compile the book directly (no Python needed):
 cd latex && ./build.sh      # → book.pdf  (pipeline: lualatex → biber → lualatex → lualatex)
 ```
 
-**`latex/book.pdf`** is the single finished deliverable (14 pages, ≥14 required):
-a fully designed mini-book — TikZ chapter banners, callout boxes, highlighted
-formulas, five TikZ diagrams, a redesigned cover, and a closing **colophon**
-crediting the CrewAI pipeline that produced the content.
+**`latex/book.pdf`** is the single finished deliverable (14 pages, close to the
+assignment's ~15-page target): a fully designed mini-book — TikZ chapter banners,
+callout boxes, highlighted formulas, five TikZ diagrams, a redesigned cover, and
+a closing **colophon** crediting the CrewAI pipeline that drafted the raw content.
 
 The crew's raw output is retained as **evidence** that the agents genuinely ran:
 the per-chapter prose in `latex/generated/` and the run logs in `results/`. That
@@ -128,7 +131,7 @@ src/startup_book/   SDK, services, agents, shared (gatekeeper/config/version)
 latex/              the LaTeX mini-book (preamble, cover, chapters, bib, build.sh)
 assets/figures/     Python-generated figures (matplotlib)
 config/             versioned JSON configuration
-docs/               PRD, PLAN, TODO, per-mechanism PRDs, PROMPTS
+docs/               PRD, PLAN, TODO, course alignment, mechanism PRDs, PROMPTS
 tests/              unit + integration (≥85% coverage)
 notebooks/          results / cost analysis
 ```
