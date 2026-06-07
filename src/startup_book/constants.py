@@ -8,7 +8,7 @@ NOT belong here — those are read from ``config/`` files via the config manager
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 # --- Repository layout -------------------------------------------------------
@@ -37,7 +37,7 @@ BOOK_PDF_NAME: str = "book.pdf"
 MAIN_TEX_NAME: str = "main.tex"
 
 
-class Language(str, Enum):
+class Language(StrEnum):
     """Chapter language mode used to drive BiDi handling in LaTeX."""
 
     HEBREW = "he"

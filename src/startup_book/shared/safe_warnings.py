@@ -14,9 +14,6 @@ import functools
 import warnings
 from collections.abc import Callable
 from contextlib import contextmanager
-from typing import TypeVar
-
-T = TypeVar("T")
 
 
 @contextmanager
@@ -30,7 +27,7 @@ def restored_warn():
         warnings.warn = saved
 
 
-def warns_safely(func: Callable[..., T]) -> Callable[..., T]:
+def warns_safely[T](func: Callable[..., T]) -> Callable[..., T]:
     """Decorator: run ``func`` with the pristine ``warnings.warn`` restored."""
 
     @functools.wraps(func)
