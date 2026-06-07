@@ -4,9 +4,9 @@
 Status keys: ☐ not started · ◐ in progress · ☑ done. Owner: `dev` (solo) /
 `ai` (AI-assisted). Each task lists its **Definition of Done (DoD)**.
 
-> **Overall:** ✅ **All phases complete (v1.1.0).** Software, book source, crew,
-> tests at 95.0% coverage, docs, and the final compile are done. The single
-> finished deliverable is `latex/book.pdf` (14 pp, close to the ~15-page target) — fully
+> **Overall:** ✅ **All phases complete (v1.3.0).** Software, book source, crew,
+> tests at 96% coverage, docs, and the final compile are done. The single
+> finished deliverable is `latex/book.pdf` (17 pp, within the ~15-page target) — fully
 > redesigned (TikZ chapter banners, callouts, highlighted formulas, five TikZ
 > diagrams, colophon crediting the crew), compiled with LuaLaTeX (TeX Live) and
 > correct Hebrew RTL / English LTR typesetting. The crew's raw output
@@ -48,7 +48,7 @@ Status keys: ☐ not started · ◐ in progress · ☑ done. Owner: `dev` (solo)
 
 ## Phase 6 — Ship (M6) — ✅ complete
 - ☑ **T6.1** Final clean compile + page/element verification. Built on TeX Live
-  LuaLaTeX; `book.pdf` = 14 pp (close to the ~15-page target, PRD K1 ✓),
+  LuaLaTeX; `book.pdf` = 17 pp (within the ~15-page target, PRD K1 ✓),
   `book_generated.pdf` = 11 pp.
   Verified visually: cover, TOC, headers/footers, image, Python graph, table,
   boxed formula, BiDi chapter, TikZ, linked bibliography — all present with

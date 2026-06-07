@@ -14,11 +14,11 @@ This report maps the project against the five course PDFs reviewed from
 | Course requirement / idea | Project evidence |
 |---|---|
 | L06 assignment: CrewAI team writes an article/book and emits a respectable LaTeX PDF | `src/startup_book/services/crew_service.py`, `latex/book.pdf` |
-| About 15 pages | `latex/book.pdf` is 14 pages, close to the requested scope |
+| About 15 pages | `latex/book.pdf` is 17 pages (within the requested ~15-page scope) |
 | Cover with topic, author, date, course, lecturer | `latex/cover.tex` |
 | Table of contents, chapters, headers and footers | `latex/main.tex`, `latex/preamble.tex` |
 | At least one image | `assets/figures/illustration.png` |
-| At least one Python-generated graph | `assets/figures/jcurve.pdf`, `assets/figures/unit_economics.pdf` |
+| At least one Python-generated graph | `assets/figures/jcurve.pdf`, `unit_economics.pdf`, `funnel.pdf` |
 | At least one table | `latex/chapters/06-economics.tex` |
 | Real mathematical formula | `latex/elements/economics-block.tex`, `latex/chapters/06-economics.tex` |
 | Hebrew/English BiDi chapter | `latex/chapters/03-lean.tex` |
@@ -34,9 +34,9 @@ This report maps the project against the five course PDFs reviewed from
 
 1. The docs did not explicitly trace the project back to the five named PDFs.
    This file fixes that gap.
-2. Some docs described ">=14 pages required", while the lecture asks for about
-   15 pages. The wording now says the final build is 14 pages and close to the
-   target instead of inventing a hard 14-page requirement.
+2. The lecture asks for about 15 pages. The final build is 17 pages, within the
+   requested scope; the docs report the real page count rather than inventing a
+   hard requirement.
 3. The CrewAI Part B slides show a live search tool example. This project keeps
    web search optional and off by default, using curated facts for repeatable
    grading. That is a deliberate architecture trade-off, not a missing assignment

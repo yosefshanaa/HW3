@@ -51,7 +51,7 @@ writing crew" pattern from the course materials, hardened toward production
 
 | # | KPI | Target | Measurement |
 |---|-----|--------|-------------|
-| K1 | Produced PDF length | about 15 pages; current final build is 14 pages | `pypdf`/`pdfinfo book.pdf` |
+| K1 | Produced PDF length | about 15 pages; current final build is 17 pages | `pypdf`/`pdfinfo book.pdf` |
 | K2 | Required book elements present | 9/9 | Manual + checklist (see §3.1) |
 | K3 | LaTeX build is repeatable | 0 errors on clean build | `lualatex×2 + biber + lualatex×2` exit 0 |
 | K4 | Test coverage | ≥ 85 % | `uv run pytest --cov` |
