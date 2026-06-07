@@ -31,7 +31,7 @@ jobs:
       - name: Lint (ruff — zero violations required)
         run: uv run ruff check
 
-      - name: Test with coverage (gate: 85%)
+      - name: "Test with coverage (gate: 85%)"
         # Coverage fail_under=85 is configured in pyproject.toml, so a drop
         # below the threshold fails this step (and the build).
         run: uv run pytest
