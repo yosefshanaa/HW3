@@ -35,6 +35,11 @@
 \titleformat*{\section}{\sffamily\bfseries\large\color{brandblue}}
 \titleformat*{\subsection}{\sffamily\bfseries\color{ink}}
 
+% --- List markers ------------------------------------------------------------
+% David CLM has no U+2022 (•), so the default itemize bullet renders as a blank
+% "tofu" box. Use a font-independent, on-brand square rule for the first level.
+\renewcommand{\labelitemi}{\textcolor{brandblue}{\raisebox{0.25ex}{\rule{0.6ex}{0.6ex}}}}
+
 % --- Coloured callout / formula boxes ----------------------------------------
 % Built from \fcolorbox over a captured savebox (NOT tcolorbox, whose frame
 % mis-places under babel RTL). The minipage content inherits RTL direction.
