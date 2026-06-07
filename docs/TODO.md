@@ -40,9 +40,11 @@ Status keys: ☐ not started · ◐ in progress · ☑ done. Owner: `dev` (solo)
 - ☑ **T4.3** Cost/token reporting in the SDK (`_estimate_cost`).
 
 ## Phase 5 — Quality (M5)
-- ☑ **T5.1** Unit tests (coverage 95.0 %). ☑ **T5.2** Integration test.
+- ☑ **T5.1** Unit tests (coverage ≥95 %). ☑ **T5.2** Integration test.
 - ☑ **T5.3** ruff clean. ☑ **T5.4** `docs/PROMPTS.md`.
 - ☑ **T5.5** `notebooks/results_analysis.ipynb`. ☑ **T5.6** full `README.md`.
+- ☑ **T5.7** CI workflow (`.github/workflows/ci.yml`): ruff + pytest/coverage
+  gate on every push/PR — automated quality enforcement (HW1-feedback gap).
 
 ## Phase 6 — Ship (M6) — ✅ complete
 - ☑ **T6.1** Final clean compile + page/element verification. Built on TeX Live

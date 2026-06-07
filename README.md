@@ -143,6 +143,11 @@ uv run pytest            # tests + coverage (gate: 85%)
 uv run ruff check        # lint (zero violations required)
 ```
 
+**Continuous integration.** [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+runs the same two gates on every push and pull request to `main` (uv-locked
+install → `ruff check` → `pytest` with the 85 % coverage gate), so quality is
+enforced automatically rather than by manual review.
+
 ## License & credits
 
 MIT — see [`LICENSE`](LICENSE). Built with

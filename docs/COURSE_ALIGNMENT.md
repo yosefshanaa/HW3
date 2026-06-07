@@ -28,6 +28,7 @@ This report maps the project against the five course PDFs reviewed from
 | CrewAI context passing | `Task(context=[...])` in `agents/tasks.py` |
 | CrewAI sequential workflow | `Process.sequential` in `crew_service.py` |
 | "Production agent is a system, not a prompt" | SDK, config files, gatekeeper, tests, build script, docs |
+| Automated quality enforcement (HW1 feedback) | `.github/workflows/ci.yml` runs ruff + pytest (85% gate) on every push/PR |
 
 ## What Was Missing Or Weak
 
