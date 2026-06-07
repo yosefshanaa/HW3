@@ -13,11 +13,15 @@
 \input{cover}
 
 % --- Table of contents (FR-B2) ----------------------------------------------
+% Front matter (the TOC) is numbered with roman numerals (i, ii, …); the body
+% restarts at arabic 1 below, so the first chapter is page 1 and every page is
+% consistently numbered. This is the standard book convention.
+\pagenumbering{roman}
 \tableofcontents
-\thispagestyle{empty}
 \clearpage
 
 % --- Chapters ---------------------------------------------------------------
+\pagenumbering{arabic}
 \input{chapters/01-intro}
 \input{chapters/02-idea}
 \input{chapters/03-lean}      % BiDi chapter (FR-B7)

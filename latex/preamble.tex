@@ -51,10 +51,22 @@
 \fancyhf{}
 \fancyhead[R]{\small\textbf{כיצד לבנות סטארט-אפ נכון}}
 \fancyhead[L]{\small\nouppercase{\leftmark}}
-\fancyfoot[C]{\small\thepage}
+% Force the page number left-to-right: in the Hebrew (RTL) footer, bare two-digit
+% numbers could otherwise be reordered by the bidi algorithm (e.g. "14" -> "41").
+\fancyfoot[C]{\small\babelsublr{\thepage}}
 \renewcommand{\headrulewidth}{0.4pt}
 \renewcommand{\footrulewidth}{0.0pt}
 \setlength{\headheight}{15pt}
+
+% Chapter-opening pages use the `plain` style. Redefine it so its page number is
+% also forced LTR — the default plain footer reversed two-digit numbers under
+% babel RTL (the bug that printed "14" as "41" on a chapter's first page).
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \fancyfoot[C]{\small\babelsublr{\thepage}}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{0pt}%
+}
 
 % --- Visual design layer (palette, headings, callout/formula boxes) ----------
 \input{theme}
