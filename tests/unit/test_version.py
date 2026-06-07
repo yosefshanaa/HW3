@@ -6,7 +6,7 @@ from startup_book.shared import version
 
 
 def test_version_is_current() -> None:
-    assert version.__version__ == "1.20"
+    assert version.__version__ == "1.30"
 
 
 def test_same_major_is_compatible() -> None:
