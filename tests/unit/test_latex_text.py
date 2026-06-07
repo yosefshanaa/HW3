@@ -38,3 +38,18 @@ def test_unbalanced_bold_left_intact() -> None:
 
 def test_special_chars_in_body_escaped() -> None:
     assert r"\%" in markdown_to_latex("growth of 50%")
+
+
+def test_empty_input_yields_empty_body() -> None:
+    assert markdown_to_latex("") == "\n"
+
+
+def test_bullets_flushed_before_following_paragraph() -> None:
+    # A paragraph that directly follows a bullet must close the list first.
+    out = markdown_to_latex("- one\n- two\nplain paragraph")
+    assert out.index(r"\end{itemize}") < out.index("plain paragraph")
+
+
+def test_star_bullets_supported() -> None:
+    out = markdown_to_latex("* a\n* b")
+    assert out.count(r"\item") == 2

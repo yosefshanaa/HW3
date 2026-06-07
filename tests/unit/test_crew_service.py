@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from pathlib import Path
 
 import pytest
@@ -11,6 +12,41 @@ from startup_book.shared.config import ConfigManager
 from startup_book.shared.errors import CrewExecutionError
 from startup_book.shared.gatekeeper import ApiGatekeeper
 from startup_book.shared.models import BookContent, Chapter, RateLimitConfig
+
+
+class FakeInnerLLM:
+    """A minimal crewai-LLM stand-in that records calls and answers capabilities."""
+
+    model = "gpt-4o-mini"
+    temperature = 0.0
+    provider = "openai"
+    stop: list[str] = []
+    additional_params: dict[str, object] = {}
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def call(self, *args: object, **kwargs: object) -> str:
+        self.calls += 1
+        return "ok"
+
+    def supports_function_calling(self) -> bool:
+        return True
+
+    def supports_stop_words(self) -> bool:
+        return False
+
+    def get_context_window_size(self) -> int:
+        return 4096
+
+    def supports_multimodal(self) -> bool:
+        return True
+
+    def format_text_content(self, text: str) -> dict[str, object]:
+        return {"type": "text", "text": text}
+
+    def to_config_dict(self) -> dict[str, object]:
+        return {"model": self.model}
 
 
 class _Usage:
@@ -90,25 +126,37 @@ def test_extract_usage_handles_missing() -> None:
 
 def test_gatekept_llm_routes_call_through_gatekeeper(fake_clock, monkeypatch) -> None:
     gk = ApiGatekeeper(_service_config(), fake_clock)
-    calls = {"gatekeeper": 0, "llm": 0}
-
-    class FakeInnerLLM:
-        model = "gpt-4o-mini"
-        temperature = 0.0
-        provider = "openai"
-        stop: list[str] = []
-        additional_params: dict[str, object] = {}
-
-        def call(self, *args: object, **kwargs: object) -> str:
-            calls["llm"] += 1
-            return "ok"
+    seen = {"gatekeeper": 0}
+    inner = FakeInnerLLM()
 
     def fake_execute(fn, *args: object, **kwargs: object) -> object:
-        calls["gatekeeper"] += 1
+        seen["gatekeeper"] += 1
         return fn(*args, **kwargs)
 
     monkeypatch.setattr(gk, "execute", fake_execute)
 
-    llm = GatekeptLLM(gatekeeper=gk, inner=FakeInnerLLM())
+    llm = GatekeptLLM(gatekeeper=gk, inner=inner)
     assert llm.call("hello") == "ok"
-    assert calls == {"gatekeeper": 1, "llm": 1}
+    assert (seen["gatekeeper"], inner.calls) == (1, 1)
+
+
+def test_gatekept_llm_async_call_routes_through_gatekeeper(fake_clock) -> None:
+    gk = ApiGatekeeper(_service_config(), fake_clock)
+    inner = FakeInnerLLM()
+    llm = GatekeptLLM(gatekeeper=gk, inner=inner)
+
+    assert asyncio.run(llm.acall("hello")) == "ok"
+    assert inner.calls == 1
+
+
+def test_gatekept_llm_delegates_capabilities(fake_clock) -> None:
+    gk = ApiGatekeeper(_service_config(), fake_clock)
+    inner = FakeInnerLLM()
+    llm = GatekeptLLM(gatekeeper=gk, inner=inner)
+
+    assert llm.supports_function_calling() is True
+    assert llm.supports_stop_words() is False
+    assert llm.supports_multimodal() is True
+    assert llm.get_context_window_size() == 4096
+    assert llm.format_text_content("hi") == {"type": "text", "text": "hi"}
+    assert llm.to_config_dict() == {"model": "gpt-4o-mini"}
