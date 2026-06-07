@@ -37,7 +37,7 @@ class FigureService:
 
     def generate_all(self) -> list[Path]:
         """Render every figure and return the list of written paths."""
-        return [self.jcurve(), self.unit_economics(), self.illustration()]
+        return [self.jcurve(), self.unit_economics(), self.funnel(), self.illustration()]
 
     @warns_safely
     def illustration(self) -> Path:
@@ -120,6 +120,21 @@ class FigureService:
         ax.legend(frameon=False, fontsize=9)
         ax.grid(True, axis="y", alpha=0.25)
         return self._save(fig, "unit_economics.pdf")
+
+    @warns_safely
+    def funnel(self) -> Path:
+        """Plot an AARRR acquisition→revenue conversion funnel (centred bars)."""
+        stages = ["Acquisition", "Activation", "Retention", "Referral", "Revenue"]
+        values = [10000, 3500, 1800, 950, 620]
+        palette = [_BLUE, _BLUE, _GREEN, _GREEN, _RED]
+        fig, ax = plt.subplots(figsize=(5.6, 3.2))
+        for row, (name, value, colour) in enumerate(zip(stages, values, palette, strict=True)):
+            y = len(stages) - row
+            ax.barh(y, value, height=0.72, left=-value / 2, color=colour)
+            ax.text(5400, y, f"{name} · {value:,}", ha="left", va="center", fontsize=9, color="#1A2433")
+        ax.set_xlim(-5200, 11200)
+        ax.axis("off")
+        return self._save(fig, "funnel.pdf")
 
     def _save(self, fig: plt.Figure, name: str) -> Path:
         """Save ``fig`` as a tight vector PDF and close it; return the path.

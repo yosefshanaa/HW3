@@ -7,12 +7,18 @@ from pathlib import Path
 from startup_book.services.figure_service import FigureService
 
 
-def test_generate_all_writes_three_assets(tmp_path: Path) -> None:
+def test_generate_all_writes_all_assets(tmp_path: Path) -> None:
     paths = FigureService(out_dir=tmp_path).generate_all()
     names = {p.name for p in paths}
-    assert names == {"jcurve.pdf", "unit_economics.pdf", "illustration.png"}
+    assert names == {"jcurve.pdf", "unit_economics.pdf", "funnel.pdf", "illustration.png"}
     for path in paths:
         assert path.exists() and path.stat().st_size > 0
+
+
+def test_funnel_is_a_pdf(tmp_path: Path) -> None:
+    path = FigureService(out_dir=tmp_path).funnel()
+    assert path.suffix == ".pdf"
+    assert path.read_bytes().startswith(b"%PDF")
 
 
 def test_jcurve_is_a_pdf(tmp_path: Path) -> None:
