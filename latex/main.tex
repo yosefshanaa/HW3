@@ -10,13 +10,18 @@
 \begin{document}
 
 % --- Cover (FR-B1) ----------------------------------------------------------
+% Front matter (cover + TOC) is numbered with roman numerals (i, ii, …); the
+% body restarts at arabic 1 below. This is the standard book convention and,
+% crucially, keeps the cover OUT of the arabic sequence: numbering roman *before*
+% the cover means the cover is page "i" (not printed), so it no longer collides
+% with the first chapter as a second arabic "1" in the PDF page labels.
+\pagenumbering{roman}
 \input{cover}
 
 % --- Table of contents (FR-B2) ----------------------------------------------
-% Front matter (the TOC) is numbered with roman numerals (i, ii, …); the body
-% restarts at arabic 1 below, so the first chapter is page 1 and every page is
-% consistently numbered. This is the standard book convention.
-\pagenumbering{roman}
+% The titlepage environment resets the page counter to 1 on exit, so restore it
+% to 2 to keep the roman sequence continuous (cover i -> TOC ii, iii …).
+\setcounter{page}{2}
 \tableofcontents
 \clearpage
 

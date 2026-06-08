@@ -1,6 +1,8 @@
 % colophon.tex — closing page: how this book was produced (CrewAI credit).
 \clearpage
-\thispagestyle{empty}
+% `plain` (not `empty`) so the closing page still prints its page number,
+% centred and LTR-safe, but without the running chapter header.
+\thispagestyle{plain}
 \vspace*{\fill}
 
 \begin{center}
