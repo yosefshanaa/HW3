@@ -186,7 +186,7 @@ manual review. Other guarantees the project holds itself to:
   (`config/logging_config.json`); a `RedactionFilter` scrubs `sk-…` keys, so no
   secret reaches stdout/disk (verified: 0 keys in the live transcript below).
 - **≤150 LOC per file, full docstrings, pinned `uv.lock`, semantic versioning**
-  (code & config both at `1.50`; releases tagged `v1.0.0`…`v1.5.0`).
+  (code & config both at `1.60`; releases tagged `v1.0.0`…`v1.6.0`).
 - **Security** — every LLM call goes through the `ApiGatekeeper` (rate-limit ·
   retry · backpressure); the only secret is `OPENAI_API_KEY`, read from `.env`
   (git-ignored, never committed) — only `.env-example` with placeholders is
