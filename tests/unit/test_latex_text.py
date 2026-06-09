@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from startup_book.shared.latex_text import escape_latex, markdown_to_latex
+from startup_book.shared.latex_text import escape_latex, heading_to_latex, markdown_to_latex
 
 
 def test_escape_specials() -> None:
@@ -92,4 +92,51 @@ def test_blockquote_flushed_before_paragraph() -> None:
 def test_citation_inside_bold_and_bullets() -> None:
     out = markdown_to_latex("- **key** point [@ries2011lean]")
     assert r"\textbf{key}" in out
+    assert r"\cite{ries2011lean}" in out
+
+
+def test_parenthesised_english_wrapped_in_en() -> None:
+    # The reported BiDi bug: "(English)" inside Hebrew must become one LTR span.
+    out = markdown_to_latex("עלות ה-CAC (Customer Acquisition Cost) חשובה")
+    assert r"\en{(Customer Acquisition Cost)}" in out
+
+
+def test_parenthesised_english_in_heading_uses_texorpdfstring() -> None:
+    # In a heading the \en must be shielded from the PDF bookmark via texorpdfstring.
+    out = markdown_to_latex("## הבנת ה-CAC (Customer Acquisition Cost)")
+    assert r"\texorpdfstring{\en{(Customer Acquisition Cost)}}{(Customer Acquisition Cost)}" in out
+
+
+def test_hebrew_only_parentheses_not_wrapped() -> None:
+    # Parentheses around Hebrew (or no Latin letter) are left untouched.
+    out = markdown_to_latex("מודל (כללי) ופשוט (123)")
+    assert r"\en{" not in out
+
+
+def test_english_paren_with_special_char_is_escaped_inside_en() -> None:
+    out = markdown_to_latex("מדד (R&D ratio) עולה")
+    assert r"\en{(R\&D ratio)}" in out
+
+
+def test_heading_to_latex_wraps_parenthesised_english() -> None:
+    # A \chapter title with parenthesised English must be wrapped (bookmark-safe).
+    out = heading_to_latex("מוצר-שוק (Product–Market Fit)")
+    assert r"\texorpdfstring{\en{(Product–Market Fit)}}{(Product–Market Fit)}" in out
+
+
+def test_heading_to_latex_plain_hebrew_unchanged() -> None:
+    assert heading_to_latex("מבוא") == "מבוא"
+
+
+def test_bold_inside_english_parens_is_converted() -> None:
+    # **bold** trapped inside a parenthesised English run must still become \textbf.
+    out = markdown_to_latex("חשוב (**MVP**) כאן")
+    assert r"\en{(\textbf{MVP})}" in out
+    assert "**" not in out
+
+
+def test_citation_inside_english_parens_not_swallowed() -> None:
+    # A citation inside an English parenthetical must still become \cite, not be
+    # absorbed into the \en run.
+    out = markdown_to_latex("ראו (Lean Startup [@ries2011lean]) כאן")
     assert r"\cite{ries2011lean}" in out

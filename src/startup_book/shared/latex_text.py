@@ -29,9 +29,19 @@ _LATEX_RE = re.compile("|".join(re.escape(key) for key in _LATEX_MAP))
 
 # Markdown citation: ``[@ries2011lean]`` or ``[@a2020,b2021]`` -> ``\cite{...}``.
 _CITE_RE = re.compile(r"\[@([\w,]+)\]")
-# Index placeholder used to carry citation keys through escaping untouched (the
-# null byte and digits are never LaTeX-special, so escaping leaves them intact).
-_CITE_HOLE = re.compile("\x00C(\\d+)\x00")
+# Index placeholders carry stashed runs through escaping untouched (the control
+# bytes \x00 / \x01 and digits are never LaTeX-special). \x00 = citation key,
+# \x01 = embedded-English run.
+_CITE_HOLE = re.compile("\x00(\\d+)\x00")
+_EN_HOLE = re.compile("\x01(\\d+)\x01")
+
+# A parenthesised English phrase such as ``(Customer Acquisition Cost)`` must
+# render as ONE left-to-right span — parentheses included — or babel's bidi
+# mis-orders the brackets inside the Hebrew (RTL) line. Match ``(...)`` whose
+# interior holds a Latin letter and no Hebrew/stash byte, so it is safe to flip
+# the whole group LTR via ``\en`` (\foreignlanguage english).
+_NOT_EN = r"[^()֐-׿\x00\x01]"  # not paren, Hebrew, or a stash byte
+_EN_PAREN = re.compile(rf"\({_NOT_EN}*[A-Za-z]{_NOT_EN}*\)")
 
 
 def escape_latex(text: str) -> str:
@@ -57,21 +67,51 @@ def _emphasis(text: str) -> str:
     return "".join(out)
 
 
-def _inline(text: str) -> str:
-    """Apply inline markup to one raw run: citations + ``**bold**``, safely escaped.
+def _english_span(raw: str, heading: bool) -> str:
+    """Wrap a raw English run in ``\\en{...}`` (forced LTR + Latin font).
 
-    Citations are stashed as indexed placeholders *before* escaping so that keys
-    containing ``_`` survive intact, then restored as ``\\cite{...}`` afterwards.
+    Inside a heading the span is shielded with ``\\texorpdfstring`` so the PDF
+    bookmark gets plain text (``\\foreignlanguage`` is illegal in a bookmark).
+    """
+    span = rf"\en{{{_emphasis(escape_latex(raw))}}}"
+    if heading:
+        return rf"\texorpdfstring{{{span}}}{{{raw.replace('**', '')}}}"
+    return span
+
+
+def _inline(text: str, *, heading: bool = False) -> str:
+    """Apply inline markup to one raw run: citations, embedded English, ``**bold**``.
+
+    Citations and parenthesised English runs are stashed as indexed placeholders
+    *before* escaping (so keys with ``_`` and the English text survive intact),
+    then restored afterwards as ``\\cite{...}`` and ``\\en{...}`` respectively.
     """
     keys: list[str] = []
+    runs: list[str] = []
 
     def _stash_cite(match: re.Match[str]) -> str:
         keys.append(match.group(1))
-        return f"\x00C{len(keys) - 1}\x00"
+        return f"\x00{len(keys) - 1}\x00"
+
+    def _stash_english(match: re.Match[str]) -> str:
+        runs.append(match.group(0))
+        return f"\x01{len(runs) - 1}\x01"
 
     text = _CITE_RE.sub(_stash_cite, text)
+    text = _EN_PAREN.sub(_stash_english, text)
     text = _emphasis(escape_latex(text))
+    text = _EN_HOLE.sub(lambda m: _english_span(runs[int(m.group(1))], heading), text)
     return _CITE_HOLE.sub(lambda m: rf"\cite{{{keys[int(m.group(1))]}}}", text)
+
+
+def heading_to_latex(text: str) -> str:
+    """Convert a heading string (e.g. a ``\\chapter`` title) to LaTeX.
+
+    Escapes specials and wraps embedded parenthesised English in ``\\en{...}``,
+    shielded by ``\\texorpdfstring`` so the PDF bookmark stays plain — the same
+    treatment ``##`` section headings get.
+    """
+    return _inline(text, heading=True)
 
 
 def markdown_to_latex(markdown: str) -> str:
@@ -114,13 +154,13 @@ def markdown_to_latex(markdown: str) -> str:
             out.append("")
         elif line.startswith("### "):
             flush_all()
-            out.append(rf"\subsection{{{_inline(line[4:])}}}")
+            out.append(rf"\subsection{{{_inline(line[4:], heading=True)}}}")
         elif line.startswith("## "):
             flush_all()
-            out.append(rf"\section{{{_inline(line[3:])}}}")
+            out.append(rf"\section{{{_inline(line[3:], heading=True)}}}")
         elif line.startswith("# "):
             flush_all()
-            out.append(rf"\section{{{_inline(line[2:])}}}")
+            out.append(rf"\section{{{_inline(line[2:], heading=True)}}}")
         elif line.lstrip().startswith("> "):
             flush_bullets()
             quote.append(_inline(line.lstrip()[2:]))

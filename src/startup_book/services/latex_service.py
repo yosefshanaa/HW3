@@ -14,7 +14,7 @@ from pathlib import Path
 
 from startup_book.constants import LATEX_DIR
 from startup_book.shared.config import ConfigManager
-from startup_book.shared.latex_text import escape_latex, markdown_to_latex
+from startup_book.shared.latex_text import escape_latex, heading_to_latex, markdown_to_latex
 from startup_book.shared.models import BookContent, Source
 
 
@@ -44,7 +44,7 @@ class LatexService:
     def _write_chapter(self, name: str, heading: str, body_markdown: str) -> None:
         """Write one chapter fragment (``\\chapter`` + converted body)."""
         body = markdown_to_latex(body_markdown)
-        text = f"\\chapter{{{escape_latex(heading)}}}\n\n{body}"
+        text = f"\\chapter{{{heading_to_latex(heading)}}}\n\n{body}"
         (self._out / f"{name}.tex").write_text(text, encoding="utf-8")
 
     def _write_index(self, names: list[str]) -> None:

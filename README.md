@@ -177,11 +177,18 @@ cd latex && ./build.sh main_generated  # → book_generated.pdf
 > Hebrew (RTL) text. Embedded English is wrapped in a `\en{…}` macro; the David
 > CLM Hebrew font comes from `fonts-culmus`. (This replaced an earlier
 > polyglossia+luabidi setup that mirror-reversed English runs — see ADR-3.)
+>
+> For the **generated** book this wrapping is automatic: the Markdown→LaTeX
+> converter ([`shared/latex_text.py`](src/startup_book/shared/latex_text.py))
+> detects parenthesised English like `(Customer Acquisition Cost)` and emits it
+> as one LTR `\en{…}` span — in body text, section headings and chapter titles
+> (headings via `\texorpdfstring` so PDF bookmarks stay clean) — so the brackets
+> never mis-order inside the Hebrew line.
 
 ## Quality & CI
 
 ```bash
-uv run pytest        # 93 tests · 98% coverage (gate fails under 85%)
+uv run pytest        # 101 tests · 98% coverage (gate fails under 85%)
 uv run ruff check    # lint · zero violations required
 ```
 
@@ -215,8 +222,8 @@ compile cleanly; the crew ran live against OpenAI):
 
 ```text
 $ uv run pytest --cov=startup_book
-93 passed in 105.36s
-Required test coverage of 85.0% reached. Total coverage: 97.80%
+101 passed in 99.11s
+Required test coverage of 85.0% reached. Total coverage: 97.85%
 
 $ uv run ruff check
 All checks passed!

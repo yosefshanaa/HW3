@@ -1,7 +1,7 @@
 # startup-book — test & coverage evidence (guidelines §6.4)
 # Command : uv run pytest   (config in pyproject.toml: --cov=startup_book --cov-report=term-missing)
 # Date    : 2026-06-09
-# Result  : 93 passed · total coverage 97.80% (gate fail_under = 85)
+# Result  : 101 passed · total coverage 97.85% (gate fail_under = 85)
 # Regenerate with: uv run pytest | tee results/test_coverage_report.txt
 # ---------------------------------------------------------------------------
 ============================= test session starts ==============================
@@ -10,23 +10,23 @@ rootdir: /mnt/c/Orch/HW3
 configfile: pyproject.toml
 testpaths: tests
 plugins: anyio-4.13.0, cov-7.1.0
-collected 93 items
+collected 101 items
 
-tests/integration/test_build_pipeline.py .                               [  1%]
-tests/unit/test_audit_service.py ......                                  [  7%]
-tests/unit/test_clock.py ...                                             [ 10%]
-tests/unit/test_compile_service.py .....                                 [ 16%]
-tests/unit/test_config.py ......                                         [ 22%]
-tests/unit/test_crew_service.py ...........                              [ 34%]
-tests/unit/test_errors.py ....                                           [ 38%]
-tests/unit/test_figure_service.py .....                                  [ 44%]
-tests/unit/test_gatekeeper.py ......                                     [ 50%]
-tests/unit/test_latex_service.py .....                                   [ 55%]
-tests/unit/test_latex_text.py .................                          [ 74%]
-tests/unit/test_logging_setup.py ......                                  [ 80%]
-tests/unit/test_models.py ....                                           [ 84%]
-tests/unit/test_redaction.py .....                                       [ 90%]
-tests/unit/test_sdk.py .....                                             [ 95%]
+tests/integration/test_build_pipeline.py .                               [  0%]
+tests/unit/test_audit_service.py ......                                  [  6%]
+tests/unit/test_clock.py ...                                             [  9%]
+tests/unit/test_compile_service.py .....                                 [ 14%]
+tests/unit/test_config.py ......                                         [ 20%]
+tests/unit/test_crew_service.py ...........                              [ 31%]
+tests/unit/test_errors.py ....                                           [ 35%]
+tests/unit/test_figure_service.py .....                                  [ 40%]
+tests/unit/test_gatekeeper.py ......                                     [ 46%]
+tests/unit/test_latex_service.py .....                                   [ 51%]
+tests/unit/test_latex_text.py .........................                  [ 76%]
+tests/unit/test_logging_setup.py ......                                  [ 82%]
+tests/unit/test_models.py ....                                           [ 86%]
+tests/unit/test_redaction.py .....                                       [ 91%]
+tests/unit/test_sdk.py .....                                             [ 96%]
 tests/unit/test_version.py ....                                          [100%]
 
 ================================ tests coverage ================================
@@ -53,13 +53,13 @@ src/startup_book/shared/clock.py                  12      0   100%
 src/startup_book/shared/config.py                 49      1    98%   72
 src/startup_book/shared/errors.py                 11      0   100%
 src/startup_book/shared/gatekeeper.py             90      2    98%   71, 79
-src/startup_book/shared/latex_text.py             69      0   100%
+src/startup_book/shared/latex_text.py             85      0   100%
 src/startup_book/shared/logging_setup.py          22      0   100%
 src/startup_book/shared/models.py                 54      0   100%
 src/startup_book/shared/redaction.py              18      0   100%
 src/startup_book/shared/safe_warnings.py          19      0   100%
 src/startup_book/shared/version.py                 6      0   100%
 ----------------------------------------------------------------------------
-TOTAL                                            727     16    98%
-Required test coverage of 85.0% reached. Total coverage: 97.80%
-======================== 93 passed in 100.83s (0:01:40) ========================
+TOTAL                                            743     16    98%
+Required test coverage of 85.0% reached. Total coverage: 97.85%
+======================= 101 passed in 101.83s (0:01:41) ========================
