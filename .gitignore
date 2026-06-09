@@ -49,11 +49,11 @@ config/secrets.json
 *.snm
 *.vrb
 *.xdv
-# Intermediate full-document PDFs — the single deliverable is latex/book.pdf.
+# Intermediate full-document PDFs — the deliverables are the book*.pdf copies.
 latex/main.pdf
 latex/main_generated.pdf
-# Crew variant is buildable evidence (./build.sh main_generated), not shipped.
-latex/book_generated.pdf
+# book.pdf (curated deliverable) and book_generated.pdf (crew-authored evidence)
+# are BOTH committed so a grader can open them without a LaTeX install.
 
 # ---------- OS / editor ----------
 .DS_Store

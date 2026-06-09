@@ -30,7 +30,10 @@ class LatexService:
         """Write all generated artifacts and return the chapter-index path."""
         inputs: list[str] = []
         for index, chapter in enumerate(content.chapters, start=1):
-            name = f"{index:02d}-{chapter.id}"
+            # Name by position (e.g. ``01-1``), not the crew-chosen id, so the
+            # filenames are stable and always match the fixed input list in
+            # ``main_generated.tex`` regardless of how the LLM labels chapters.
+            name = f"{index:02d}-{index}"
             self._write_chapter(name, chapter.heading, chapter.body_markdown)
             inputs.append(name)
         self._write_index(inputs)

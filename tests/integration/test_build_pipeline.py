@@ -44,6 +44,6 @@ def test_build_produces_real_figures_and_latex(
     assert (fig_dir / "unit_economics.pdf").exists()
     assert (fig_dir / "illustration.png").exists()
     # real LaTeX fragments rendered from the sample content
-    assert (tex_dir / "generated" / "01-intro.tex").exists()
+    assert (tex_dir / "generated" / "01-1.tex").exists()
     assert (tex_dir / "generated" / "chapters.tex").exists()
     assert (tex_dir / "generated" / "references.bib").exists()

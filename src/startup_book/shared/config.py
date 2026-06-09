@@ -67,6 +67,10 @@ class ConfigManager:
         """Sampling temperature for the agents."""
         return float(self._setup["llm"].get("temperature", 0.4))
 
+    def max_tokens(self) -> int:
+        """Max completion tokens per LLM call (headroom for long chapters)."""
+        return int(self._setup["llm"].get("max_tokens", 4000))
+
     def cost_rates(self) -> tuple[float, float]:
         """Return (input, output) USD cost per 1M tokens for cost reporting."""
         llm = self._setup["llm"]

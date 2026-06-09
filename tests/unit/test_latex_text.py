@@ -53,3 +53,43 @@ def test_bullets_flushed_before_following_paragraph() -> None:
 def test_star_bullets_supported() -> None:
     out = markdown_to_latex("* a\n* b")
     assert out.count(r"\item") == 2
+
+
+def test_single_hash_heading_becomes_section() -> None:
+    # A lone "# " maps to \section (the \chapter title is emitted separately).
+    assert r"\section{Intro}" in markdown_to_latex("# Intro")
+
+
+def test_citation_converted() -> None:
+    out = markdown_to_latex("As shown [@ries2011lean] this works.")
+    assert r"\cite{ries2011lean}" in out
+
+
+def test_multi_key_citation() -> None:
+    out = markdown_to_latex("see [@a2020,b2021]")
+    assert r"\cite{a2020,b2021}" in out
+
+
+def test_citation_key_with_underscore_survives_escaping() -> None:
+    # The key must NOT be mangled into key\_word by the LaTeX escaper.
+    out = markdown_to_latex("ref [@key_word]")
+    assert r"\cite{key_word}" in out
+    assert r"key\_word" not in out
+
+
+def test_blockquote_becomes_takeaway_box() -> None:
+    out = markdown_to_latex("> the bottom line")
+    assert r"\begin{takeaway}" in out
+    assert r"\end{takeaway}" in out
+    assert "the bottom line" in out
+
+
+def test_blockquote_flushed_before_paragraph() -> None:
+    out = markdown_to_latex("> note\nplain after")
+    assert out.index(r"\end{takeaway}") < out.index("plain after")
+
+
+def test_citation_inside_bold_and_bullets() -> None:
+    out = markdown_to_latex("- **key** point [@ries2011lean]")
+    assert r"\textbf{key}" in out
+    assert r"\cite{ries2011lean}" in out

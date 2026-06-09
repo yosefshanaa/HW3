@@ -2,8 +2,10 @@
 
 Why: crew output is free Markdown that may contain LaTeX-special characters. These
 functions escape those characters and map a small Markdown subset to LaTeX, so the
-generated chapter fragments compile. Keeping them pure makes escaping easy to unit
-test (PRD_latex_generation SC-5).
+generated chapter fragments compile *and* pick up the book's visual design (styled
+sections, ``takeaway`` callout boxes, ``\\cite`` citations) — closing the gap
+between the crew-authored book and the curated one. Keeping them pure makes the
+mapping easy to unit test (PRD_latex_generation SC-5).
 """
 
 import re
@@ -24,6 +26,12 @@ _LATEX_MAP: dict[str, str] = {
     "^": r"\textasciicircum{}",
 }
 _LATEX_RE = re.compile("|".join(re.escape(key) for key in _LATEX_MAP))
+
+# Markdown citation: ``[@ries2011lean]`` or ``[@a2020,b2021]`` -> ``\cite{...}``.
+_CITE_RE = re.compile(r"\[@([\w,]+)\]")
+# Index placeholder used to carry citation keys through escaping untouched (the
+# null byte and digits are never LaTeX-special, so escaping leaves them intact).
+_CITE_HOLE = re.compile("\x00C(\\d+)\x00")
 
 
 def escape_latex(text: str) -> str:
@@ -49,15 +57,35 @@ def _emphasis(text: str) -> str:
     return "".join(out)
 
 
+def _inline(text: str) -> str:
+    """Apply inline markup to one raw run: citations + ``**bold**``, safely escaped.
+
+    Citations are stashed as indexed placeholders *before* escaping so that keys
+    containing ``_`` survive intact, then restored as ``\\cite{...}`` afterwards.
+    """
+    keys: list[str] = []
+
+    def _stash(match: re.Match[str]) -> str:
+        keys.append(match.group(1))
+        return f"\x00C{len(keys) - 1}\x00"
+
+    text = _CITE_RE.sub(_stash, text)
+    text = _emphasis(escape_latex(text))
+    return _CITE_HOLE.sub(lambda m: rf"\cite{{{keys[int(m.group(1))]}}}", text)
+
+
 def markdown_to_latex(markdown: str) -> str:
     """Convert a small Markdown subset to LaTeX body text.
 
-    Supports ``##``/``###`` headings, ``-``/``*`` bullet lists, ``**bold**`` and
-    paragraphs. All other text is escaped and emitted as paragraphs.
+    Supports headings (``#``/``##`` -> ``\\section``, ``###`` -> ``\\subsection``),
+    ``-``/``*`` bullet lists, ``> ...`` blockquotes (rendered as a ``takeaway``
+    callout box), ``**bold**``, ``[@key]`` citations, and paragraphs. Everything
+    else is escaped and emitted as paragraph text.
     """
     lines = markdown.splitlines()
     out: list[str] = []
     bullets: list[str] = []
+    quote: list[str] = []
 
     def flush_bullets() -> None:
         if not bullets:
@@ -67,21 +95,40 @@ def markdown_to_latex(markdown: str) -> str:
         out.append("\\end{itemize}")
         bullets.clear()
 
+    def flush_quote() -> None:
+        if not quote:
+            return
+        out.append("\\begin{takeaway}")
+        out.append(" ".join(quote))
+        out.append("\\end{takeaway}")
+        quote.clear()
+
+    def flush_all() -> None:
+        flush_bullets()
+        flush_quote()
+
     for raw in lines:
         line = raw.rstrip()
         if not line.strip():
-            flush_bullets()
+            flush_all()
             out.append("")
         elif line.startswith("### "):
-            flush_bullets()
-            out.append(rf"\subsection{{{_emphasis(escape_latex(line[4:]))}}}")
+            flush_all()
+            out.append(rf"\subsection{{{_inline(line[4:])}}}")
         elif line.startswith("## "):
+            flush_all()
+            out.append(rf"\section{{{_inline(line[3:])}}}")
+        elif line.startswith("# "):
+            flush_all()
+            out.append(rf"\section{{{_inline(line[2:])}}}")
+        elif line.lstrip().startswith("> "):
             flush_bullets()
-            out.append(rf"\section{{{_emphasis(escape_latex(line[3:]))}}}")
+            quote.append(_inline(line.lstrip()[2:]))
         elif line.lstrip().startswith(("- ", "* ")):
-            bullets.append(_emphasis(escape_latex(line.lstrip()[2:])))
+            flush_quote()
+            bullets.append(_inline(line.lstrip()[2:]))
         else:
-            flush_bullets()
-            out.append(_emphasis(escape_latex(line)))
-    flush_bullets()
+            flush_all()
+            out.append(_inline(line))
+    flush_all()
     return "\n".join(out).strip() + "\n"

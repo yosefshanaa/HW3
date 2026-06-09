@@ -6,6 +6,9 @@
 % =============================================================================
 \documentclass[11pt,a4paper,oneside]{report}
 \input{preamble}
+% The crew collects its own sources; load them so [@key] citations in the
+% generated prose resolve against the crew-produced bibliography.
+\addbibresource{generated/references.bib}
 \begin{document}
 \input{cover}
 \tableofcontents

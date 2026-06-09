@@ -88,7 +88,11 @@ class CrewService:
         """Construct the shared LLM from configuration (model + temperature)."""
         return GatekeptLLM(
             gatekeeper=self._gatekeeper,
-            inner=LLM(model=self._config.model(), temperature=self._config.temperature()),
+            inner=LLM(
+                model=self._config.model(),
+                temperature=self._config.temperature(),
+                max_tokens=self._config.max_tokens(),
+            ),
         )
 
     def _build_crew(self) -> Crew:

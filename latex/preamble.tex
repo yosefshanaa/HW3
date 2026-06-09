@@ -73,6 +73,11 @@
 
 % --- Bibliography (biblatex + biber, FR-B9) ----------------------------------
 \usepackage[autostyle=false,style=english]{csquotes}
+% The reference list is typeset LTR in English (see main.tex), so the two
+% harmless "Language 'hebrew'/'nil' not supported" notes biblatex prints at init
+% (it has no Hebrew .lbx) do not affect output. Mapping them to English instead
+% leaves bibliography strings ('in'/'and'/'pages') untranslated, which is worse —
+% so we keep the default and accept the two cosmetic init notes.
 \usepackage[backend=biber,style=numeric,sorting=none]{biblatex}
 \addbibresource{references.bib}
 
