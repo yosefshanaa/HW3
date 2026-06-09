@@ -18,9 +18,14 @@
 
 % Hebrew fonts ship with the `culmus` package. This is the ONLY block to change
 % for fonts — e.g. swap "David CLM" for "Frank Ruehl CLM" or "Noto Sans Hebrew".
-\babelfont{rm}[Script=Hebrew]{David CLM}       % Hebrew serif (main body)
-\babelfont{sf}[Script=Hebrew]{Nachlieli CLM}   % Hebrew sans
-\babelfont{tt}[Script=Hebrew]{Miriam Mono CLM} % Hebrew monospace
+% AutoFakeBold synthesises a bold weight from the regular face: the installed
+% David/Nachlieli/Miriam CLM fonts ship no bold .otf, so a bare \textbf{Hebrew}
+% would otherwise fall back to Latin Modern Bold (no Hebrew glyphs) and drop the
+% letters. This keeps bold Hebrew (e.g. the crew's **bold** key terms) on the
+% Hebrew font.
+\babelfont{rm}[Script=Hebrew,AutoFakeBold=2]{David CLM}       % Hebrew serif (main body)
+\babelfont{sf}[Script=Hebrew,AutoFakeBold=2]{Nachlieli CLM}   % Hebrew sans
+\babelfont{tt}[Script=Hebrew,AutoFakeBold=2]{Miriam Mono CLM} % Hebrew monospace
 % Latin-script fonts for embedded English / code / math.
 \babelfont[english]{rm}{Latin Modern Roman}
 \babelfont[english]{tt}{Latin Modern Mono}

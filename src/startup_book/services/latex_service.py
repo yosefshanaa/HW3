@@ -9,6 +9,7 @@ and stable (ADR-6); the crew fills *prose*. This service converts the crew's
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from startup_book.constants import LATEX_DIR
@@ -58,11 +59,17 @@ class LatexService:
 
     @staticmethod
     def _bib_entry(src: Source) -> str:
-        """Format a single ``@misc`` BibTeX entry from a :class:`Source`."""
+        """Format a single ``@misc`` BibTeX entry from a :class:`Source`.
+
+        Crew-collected fields are LaTeX-escaped (a raw ``&`` in an author such as
+        "McKinsey & Company" is a fatal biber error), and the key is reduced to
+        biber-safe characters.
+        """
+        key = re.sub(r"[^\w:-]", "", src.key) or "ref"
         return (
-            f"@misc{{{src.key},\n"
-            f"  title  = {{{src.title}}},\n"
-            f"  author = {{{src.author}}},\n"
-            f"  year   = {{{src.year}}}\n"
+            f"@misc{{{key},\n"
+            f"  title  = {{{escape_latex(src.title)}}},\n"
+            f"  author = {{{escape_latex(src.author)}}},\n"
+            f"  year   = {{{escape_latex(src.year)}}}\n"
             f"}}\n"
         )

@@ -52,3 +52,24 @@ def test_bib_contains_source_key(
     bib = (tmp_path / "generated" / "references.bib").read_text(encoding="utf-8")
     assert "@misc{ries2011," in bib
     assert "The Lean Startup" in bib
+
+
+def test_bib_escapes_ampersand_in_author(
+    config_dir: Path, tmp_path: Path
+) -> None:
+    # A raw "&" in a crew-collected author is a fatal biber error; it must be
+    # escaped. The key is also reduced to biber-safe characters.
+    from startup_book.shared.models import BookContent, Chapter, Source
+
+    content = BookContent(
+        title="t",
+        chapters=[Chapter(id="x", heading="h", body_markdown="body")],
+        sources=[Source(key="mck&2020", title="Report 50% up", author="McKinsey & Co", year="2020")],
+    )
+    service = LatexService(ConfigManager(config_dir), latex_dir=tmp_path)
+    service.render(content)
+    bib = (tmp_path / "generated" / "references.bib").read_text(encoding="utf-8")
+    assert r"McKinsey \& Co" in bib
+    assert r"Report 50\% up" in bib
+    assert "@misc{mck2020," in bib  # "&" stripped from the key
+    assert "McKinsey & Co" not in bib  # no raw ampersand survives

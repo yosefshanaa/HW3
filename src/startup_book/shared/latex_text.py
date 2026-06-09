@@ -65,11 +65,11 @@ def _inline(text: str) -> str:
     """
     keys: list[str] = []
 
-    def _stash(match: re.Match[str]) -> str:
+    def _stash_cite(match: re.Match[str]) -> str:
         keys.append(match.group(1))
         return f"\x00C{len(keys) - 1}\x00"
 
-    text = _CITE_RE.sub(_stash, text)
+    text = _CITE_RE.sub(_stash_cite, text)
     text = _emphasis(escape_latex(text))
     return _CITE_HOLE.sub(lambda m: rf"\cite{{{keys[int(m.group(1))]}}}", text)
 

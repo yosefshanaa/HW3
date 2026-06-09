@@ -26,7 +26,9 @@
 \input{generated/07-7}
 \input{elements/pitfalls-diagram}
 \input{generated/08-8}
-\begin{otherlanguage}{english}
+% The crew collects sources with mixed Hebrew/English titles, so the reference
+% list stays in the main (Hebrew) language — babel bidi=basic keeps English runs
+% LTR while Hebrew titles render in the Hebrew font. (The curated book.pdf, whose
+% sources are all English, forces english here instead.)
 \printbibliography[heading=bibintoc]
-\end{otherlanguage}
 \end{document}

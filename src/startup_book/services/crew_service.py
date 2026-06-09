@@ -16,11 +16,12 @@ from crewai.llms.base_llm import BaseLLM
 from pydantic import PrivateAttr
 
 from startup_book.agents.definitions import build_agents
-from startup_book.agents.tasks import build_tasks
+from startup_book.agents.tasks import build_chapter_tasks
+from startup_book.constants import Language
 from startup_book.shared.config import ConfigManager
 from startup_book.shared.errors import CrewExecutionError
 from startup_book.shared.gatekeeper import ApiGatekeeper
-from startup_book.shared.models import BookContent, TokenUsage
+from startup_book.shared.models import BookContent, Chapter, Source, TokenUsage
 
 logger = logging.getLogger("startup_book.crew")
 
@@ -95,51 +96,71 @@ class CrewService:
             ),
         )
 
-    def _build_crew(self) -> Crew:
-        """Assemble the sequential crew from the agent and task factories."""
-        agents = build_agents(self._build_llm())
-        tasks = build_tasks(agents)
-        return Crew(
+    def _run_chapter(self, llm: BaseLLM, topic: str, heading: str) -> object:
+        """Run the full Researcher->Writer->Reviewer->LaTeX crew for ONE chapter.
+
+        Running per chapter (rather than all chapters in a single response) gives
+        each chapter the model's full output budget, so chapters come out full
+        length instead of being rationed into a single capped response.
+        """
+        agents = build_agents(llm)
+        crew = Crew(
             agents=list(agents.values()),
-            tasks=tasks,
+            tasks=build_chapter_tasks(agents, heading),
             process=Process.sequential,
             verbose=True,
         )
-
-    def _run_crew(self, inputs: dict[str, str]) -> object:
-        """Run the crew and return its output; the LLM itself is gatekept."""
-        crew = self._build_crew()
-        return crew.kickoff(inputs=inputs)
+        return crew.kickoff(inputs={"topic": topic})
 
     def generate_content(self, topic: str | None = None) -> BookContent:
-        """Run the pipeline and return the assembled :class:`BookContent`.
+        """Author every chapter (one crew run each) and assemble :class:`BookContent`.
 
         Args:
             topic: Optional topic override; defaults to the configured title.
 
         Raises:
-            CrewExecutionError: If the crew fails or returns unstructured output.
+            CrewExecutionError: If a chapter crew fails or returns unstructured output.
         """
         book = self._config.book()
         topic = topic or book["title_en"]
-        outline = "\n".join(
-            f"- {spec.id}: {spec.heading_he}" for spec in self._config.chapter_specs()
-        )
-        try:
-            result = self._run_crew({"topic": topic, "outline": outline})
-        except Exception as exc:
-            raise CrewExecutionError(f"crew execution failed: {exc}") from exc
-        return self._to_book_content(result, book["title_he"])
+        llm = self._build_llm()
+        chapters: list[Chapter] = []
+        sources: dict[str, Source] = {}
+        prompt_tokens = completion_tokens = 0
 
-    def _to_book_content(self, result: object, default_title: str) -> BookContent:
-        """Validate the crew output and enrich it with title and token usage."""
+        for spec in self._config.chapter_specs():
+            try:
+                result = self._run_chapter(llm, topic, spec.heading_he)
+            except Exception as exc:
+                raise CrewExecutionError(f"chapter '{spec.id}' failed: {exc}") from exc
+            chapter = self._first_chapter(result, spec.id, spec.heading_he, spec.language)
+            chapters.append(chapter)
+            for src in getattr(getattr(result, "pydantic", None), "sources", []) or []:
+                sources[src.key] = src
+            usage = self._extract_usage(result)
+            prompt_tokens += usage.prompt_tokens
+            completion_tokens += usage.completion_tokens
+
+        return BookContent(
+            title=book["title_he"],
+            chapters=chapters,
+            sources=list(sources.values()),
+            token_usage=TokenUsage(
+                prompt_tokens=prompt_tokens, completion_tokens=completion_tokens
+            ),
+        )
+
+    @staticmethod
+    def _first_chapter(result: object, id_: str, heading: str, language: Language) -> Chapter:
+        """Pull the single authored chapter from a crew result and normalise it."""
         content = getattr(result, "pydantic", None)
-        if not isinstance(content, BookContent):
-            raise CrewExecutionError("crew did not return a structured BookContent")
-        if not content.title:
-            content.title = default_title
-        content.token_usage = self._extract_usage(result)
-        return content
+        if not isinstance(content, BookContent) or not content.chapters:
+            raise CrewExecutionError("crew did not return a structured chapter")
+        chapter = content.chapters[0]
+        chapter.id = id_
+        chapter.heading = heading
+        chapter.language = language
+        return chapter
 
     @staticmethod
     def _extract_usage(result: object) -> TokenUsage:

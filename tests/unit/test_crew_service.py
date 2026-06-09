@@ -77,34 +77,44 @@ def _service_config() -> RateLimitConfig:
     )
 
 
-def test_generate_content_fills_title_and_usage(config_dir: Path, monkeypatch) -> None:
+def test_generate_content_aggregates_chapters_title_and_usage(
+    config_dir: Path, monkeypatch
+) -> None:
+    # The test config has 2 chapters -> 2 crew runs -> usage is summed. A fresh
+    # result per call (production returns a new crew result each run).
     svc = _service(config_dir)
-    content = BookContent(title="", chapters=[Chapter(id="intro", heading="מבוא")])
-    monkeypatch.setattr(svc, "_run_crew", lambda inputs: _Result(content))
+    monkeypatch.setattr(
+        svc,
+        "_run_chapter",
+        lambda llm, topic, heading: _Result(
+            BookContent(title="", chapters=[Chapter(id="x", heading="h")])
+        ),
+    )
 
     result = svc.generate_content("My Topic")
-    assert result.title == "כותרת"  # default from config (was empty)
-    assert result.token_usage.prompt_tokens == 120
-    assert result.token_usage.completion_tokens == 80
+    assert result.title == "כותרת"  # from config
+    assert [c.heading for c in result.chapters] == ["מבוא", "רזה"]  # per-spec headings
+    assert result.token_usage.prompt_tokens == 240  # 120 * 2 chapters
+    assert result.token_usage.completion_tokens == 160  # 80 * 2 chapters
 
 
-def test_generate_content_builds_topic_and_outline(config_dir: Path, monkeypatch) -> None:
-    captured: dict[str, str] = {}
+def test_generate_content_runs_each_chapter_with_topic(config_dir: Path, monkeypatch) -> None:
+    seen: list[tuple[str, str]] = []
 
-    def fake_run(inputs: dict[str, str]) -> _Result:
-        captured.update(inputs)
-        return _Result(BookContent(title="t"))
+    def fake_run(llm: object, topic: str, heading: str) -> _Result:
+        seen.append((topic, heading))
+        return _Result(BookContent(title="t", chapters=[Chapter(id="x", heading=heading)]))
 
     svc = _service(config_dir)
-    monkeypatch.setattr(svc, "_run_crew", fake_run)
+    monkeypatch.setattr(svc, "_run_chapter", fake_run)
     svc.generate_content("My Topic")
-    assert captured["topic"] == "My Topic"
-    assert "intro" in captured["outline"]
+    assert [t for t, _ in seen] == ["My Topic", "My Topic"]  # topic passed each run
+    assert [h for _, h in seen] == ["מבוא", "רזה"]  # one run per chapter heading
 
 
 def test_unstructured_output_raises(config_dir: Path, monkeypatch) -> None:
     svc = _service(config_dir)
-    monkeypatch.setattr(svc, "_run_crew", lambda inputs: _Result(pydantic=None))
+    monkeypatch.setattr(svc, "_run_chapter", lambda llm, topic, heading: _Result(pydantic=None))
     with pytest.raises(CrewExecutionError):
         svc.generate_content("t")
 
@@ -112,10 +122,10 @@ def test_unstructured_output_raises(config_dir: Path, monkeypatch) -> None:
 def test_crew_failure_is_wrapped(config_dir: Path, monkeypatch) -> None:
     svc = _service(config_dir)
 
-    def boom(inputs: dict[str, str]) -> None:
+    def boom(llm: object, topic: str, heading: str) -> None:
         raise RuntimeError("llm down")
 
-    monkeypatch.setattr(svc, "_run_crew", boom)
+    monkeypatch.setattr(svc, "_run_chapter", boom)
     with pytest.raises(CrewExecutionError):
         svc.generate_content("t")
 
