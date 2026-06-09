@@ -27,6 +27,10 @@ RESULTS_DIR: Path = REPO_ROOT / "results"
 SETUP_CONFIG_FILE: str = "setup.json"
 RATE_LIMITS_FILE: str = "rate_limits.json"
 
+# Logging config follows Python's dictConfig schema (its own ``version: 1``), so
+# it is loaded directly rather than through the versioned ConfigManager.
+LOGGING_CONFIG_FILE: Path = CONFIG_DIR / "logging_config.json"
+
 # --- Environment variable names ----------------------------------------------
 ENV_OPENAI_API_KEY: str = "OPENAI_API_KEY"
 ENV_OPENAI_BASE_URL: str = "OPENAI_BASE_URL"

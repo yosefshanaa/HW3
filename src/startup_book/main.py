@@ -37,7 +37,12 @@ def main(argv: list[str] | None = None) -> int:
     Args:
         argv: Optional argument list (defaults to ``sys.argv``).
     """
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+    from startup_book.shared.logging_setup import configure_logging
+
+    try:
+        configure_logging()  # JSON-line logs + secret redaction (§7.4)
+    except Exception:  # pragma: no cover - never let logging setup crash the CLI
+        logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     args = _build_parser().parse_args(argv)
 
     from startup_book import BookBuilderSDK
