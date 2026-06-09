@@ -8,73 +8,28 @@ structured result into a :class:`BookContent`.
 
 from __future__ import annotations
 
-import asyncio
 import logging
+from concurrent.futures import ThreadPoolExecutor
 
 from crewai import LLM, Crew, Process
 from crewai.llms.base_llm import BaseLLM
-from pydantic import PrivateAttr
 
 from startup_book.agents.definitions import build_agents
 from startup_book.agents.tasks import build_chapter_tasks
 from startup_book.constants import Language
+from startup_book.services.gatekept_llm import GatekeptLLM
 from startup_book.shared.config import ConfigManager
 from startup_book.shared.errors import CrewExecutionError
 from startup_book.shared.gatekeeper import ApiGatekeeper
-from startup_book.shared.models import BookContent, Chapter, Source, TokenUsage
+from startup_book.shared.models import (
+    BookContent,
+    Chapter,
+    ChapterSpec,
+    Source,
+    TokenUsage,
+)
 
 logger = logging.getLogger("startup_book.crew")
-
-
-class GatekeptLLM(BaseLLM):
-    """CrewAI LLM that routes every model call through the API gatekeeper."""
-
-    _gatekeeper: ApiGatekeeper = PrivateAttr()
-    _inner: LLM = PrivateAttr()
-
-    def __init__(self, *, gatekeeper: ApiGatekeeper, inner: LLM) -> None:
-        """Create the LLM and keep the gatekeeper outside serialized model data."""
-        super().__init__(
-            model=inner.model,
-            temperature=inner.temperature,
-            provider=inner.provider,
-            stop=inner.stop,
-            additional_params=inner.additional_params,
-        )
-        self._gatekeeper = gatekeeper
-        self._inner = inner
-
-    def call(self, *args: object, **kwargs: object) -> object:
-        """Execute CrewAI's synchronous LLM call through the gatekeeper."""
-        return self._gatekeeper.execute(self._inner.call, *args, **kwargs)
-
-    async def acall(self, *args: object, **kwargs: object) -> object:
-        """Execute CrewAI's async LLM call path through the same gatekeeper."""
-        return await asyncio.to_thread(self._gatekeeper.execute, self._inner.call, *args, **kwargs)
-
-    def supports_function_calling(self) -> bool:
-        """Delegate function-calling capability checks to the provider LLM."""
-        return self._inner.supports_function_calling()
-
-    def supports_stop_words(self) -> bool:
-        """Delegate stop-word capability checks to the provider LLM."""
-        return self._inner.supports_stop_words()
-
-    def get_context_window_size(self) -> int:
-        """Delegate context-window lookup to the provider LLM."""
-        return self._inner.get_context_window_size()
-
-    def supports_multimodal(self) -> bool:
-        """Delegate multimodal capability checks to the provider LLM."""
-        return self._inner.supports_multimodal()
-
-    def format_text_content(self, text: str) -> dict[str, object]:
-        """Delegate content formatting to the provider LLM."""
-        return self._inner.format_text_content(text)
-
-    def to_config_dict(self) -> dict[str, object]:
-        """Delegate config serialization to the provider LLM."""
-        return self._inner.to_config_dict()
 
 
 class CrewService:
@@ -120,6 +75,9 @@ class CrewService:
     def generate_content(self, topic: str | None = None) -> BookContent:
         """Author every chapter (one crew run each) and assemble :class:`BookContent`.
 
+        Chapters are generated concurrently (§15) and reassembled in outline
+        order; token usage is summed across all runs.
+
         Args:
             topic: Optional topic override; defaults to the configured title.
 
@@ -129,15 +87,13 @@ class CrewService:
         book = self._config.book()
         topic = topic or book["title_en"]
         llm = self._build_llm()
+        specs = self._config.chapter_specs()
+        results = self._run_chapters(llm, topic, specs)
+
         chapters: list[Chapter] = []
         sources: dict[str, Source] = {}
         prompt_tokens = completion_tokens = 0
-
-        for spec in self._config.chapter_specs():
-            try:
-                result, usage_metrics = self._run_chapter(llm, topic, spec.heading_he)
-            except Exception as exc:
-                raise CrewExecutionError(f"chapter '{spec.id}' failed: {exc}") from exc
+        for spec, (result, usage_metrics) in zip(specs, results, strict=True):
             chapter = self._first_chapter(result, spec.id, spec.heading_he, spec.language)
             chapters.append(chapter)
             for src in getattr(getattr(result, "pydantic", None), "sources", []) or []:
@@ -154,6 +110,31 @@ class CrewService:
                 prompt_tokens=prompt_tokens, completion_tokens=completion_tokens
             ),
         )
+
+    def _run_chapters(
+        self, llm: BaseLLM, topic: str, specs: list[ChapterSpec]
+    ) -> list[tuple[object, object]]:
+        """Run every chapter crew concurrently and return results in outline order.
+
+        Chapter generation is I/O-bound (network LLM calls), so threads are the
+        right tool (§15.1). The pool width is capped at the rate-limit's
+        ``concurrent_max`` so chapter parallelism never exceeds the concurrency
+        budget — the gatekeeper still independently throttles each LLM call, so
+        no chapter thread holds a gatekeeper slot while waiting (no deadlock).
+        """
+        max_workers = max(1, min(len(specs), self._config.rate_limit().concurrent_max))
+        results: list[tuple[object, object]] = [(None, None)] * len(specs)
+        with ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="chapter") as pool:
+            futures = {
+                pool.submit(self._run_chapter, llm, topic, spec.heading_he): i
+                for i, spec in enumerate(specs)
+            }
+            for future, i in futures.items():
+                try:
+                    results[i] = future.result()
+                except Exception as exc:
+                    raise CrewExecutionError(f"chapter '{specs[i].id}' failed: {exc}") from exc
+        return results
 
     @staticmethod
     def _first_chapter(result: object, id_: str, heading: str, language: Language) -> Chapter:

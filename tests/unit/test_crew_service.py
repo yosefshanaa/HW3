@@ -3,11 +3,15 @@
 from __future__ import annotations
 
 import asyncio
+import json
+import threading
+import time
 from pathlib import Path
 
 import pytest
 
-from startup_book.services.crew_service import CrewService, GatekeptLLM
+from startup_book.services.crew_service import CrewService
+from startup_book.services.gatekept_llm import GatekeptLLM
 from startup_book.shared.config import ConfigManager
 from startup_book.shared.errors import CrewExecutionError
 from startup_book.shared.gatekeeper import ApiGatekeeper
@@ -110,8 +114,10 @@ def test_generate_content_runs_each_chapter_with_topic(config_dir: Path, monkeyp
     svc = _service(config_dir)
     monkeypatch.setattr(svc, "_run_chapter", fake_run)
     svc.generate_content("My Topic")
-    assert [t for t, _ in seen] == ["My Topic", "My Topic"]  # topic passed each run
-    assert [h for _, h in seen] == ["מבוא", "רזה"]  # one run per chapter heading
+    # Chapters run concurrently, so completion order is not deterministic; assert
+    # on membership instead: the topic reaches every run, once per heading.
+    assert {t for t, _ in seen} == {"My Topic"}
+    assert sorted(h for _, h in seen) == sorted(["מבוא", "רזה"])
 
 
 def test_unstructured_output_raises(config_dir: Path, monkeypatch) -> None:
@@ -200,3 +206,61 @@ def test_gatekept_llm_delegates_capabilities(fake_clock) -> None:
     assert llm.get_context_window_size() == 4096
     assert llm.format_text_content("hi") == {"type": "text", "text": "hi"}
     assert llm.to_config_dict() == {"model": "gpt-4o-mini"}
+
+
+def _write_config(config_dir: Path, *, n_chapters: int, concurrent_max: int) -> None:
+    """Write a setup.json with N chapters and a rate_limits.json with the cap."""
+    setup = {
+        "version": "1.00",
+        "book": {
+            "title_he": "כותרת", "title_en": "Title", "author": "t",
+            "course_he": "ק", "lecturer_he": "מ", "language": "he",
+            "chapters": [
+                {"id": f"c{i}", "heading_he": f"פרק {i}", "language": "he"}
+                for i in range(n_chapters)
+            ],
+        },
+        "llm": {
+            "model": "gpt-4o-mini", "temperature": 0.3,
+            "cost_per_1m_input_usd": 0.15, "cost_per_1m_output_usd": 0.60,
+        },
+        "build": {"engine": "lualatex", "passes": 4, "use_biber": True},
+    }
+    limits = {
+        "version": "1.00",
+        "services": {"default": {
+            "requests_per_minute": 100, "requests_per_hour": 1000,
+            "concurrent_max": concurrent_max, "retry_after_seconds": 0,
+            "max_retries": 0, "max_queue_depth": 100,
+        }},
+    }
+    (config_dir / "setup.json").write_text(json.dumps(setup), encoding="utf-8")
+    (config_dir / "rate_limits.json").write_text(json.dumps(limits), encoding="utf-8")
+
+
+def test_chapters_run_concurrently_bounded_by_concurrent_max(tmp_path: Path, monkeypatch) -> None:
+    """Chapters run in parallel but never exceed concurrent_max, and come back
+    in outline order with usage summed across all runs (§15)."""
+    _write_config(tmp_path, n_chapters=6, concurrent_max=2)
+    svc = _service(tmp_path)
+
+    state = {"active": 0, "peak": 0}
+    lock = threading.Lock()
+
+    def fake_run(llm: object, topic: str, heading: str) -> tuple[_Result, _Usage]:
+        with lock:
+            state["active"] += 1
+            state["peak"] = max(state["peak"], state["active"])
+        time.sleep(0.03)  # hold the slot so overlap is observable
+        with lock:
+            state["active"] -= 1
+        return _ok(heading)
+
+    monkeypatch.setattr(svc, "_run_chapter", fake_run)
+    result = svc.generate_content("t")
+
+    assert state["peak"] <= 2  # never exceeded concurrent_max (the §15 invariant)
+    assert state["peak"] == 2  # but it DID run in parallel, not sequentially
+    assert [c.heading for c in result.chapters] == [f"פרק {i}" for i in range(6)]  # ordered
+    assert result.token_usage.prompt_tokens == 720  # 120 * 6
+    assert result.token_usage.completion_tokens == 480  # 80 * 6
