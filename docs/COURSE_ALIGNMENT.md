@@ -43,13 +43,13 @@ This report maps the project against the five course PDFs reviewed from
    requirement.
 
    *Update (v1.40):* the crew prose was thin in early versions (one paragraph per
-   chapter → an 11-page `book_generated.pdf`). The pipeline now produces a rich,
-   sectioned book — each chapter has 3–4 styled `\section`s, **bold** terms, a
-   `takeaway` callout box, and (when present) `\cite` citations — by enforcing
-   length/structure in the agent prompts, raising the LLM output budget so the
-   full book is not truncated, and upgrading the Markdown→LaTeX converter so crew
-   prose inherits the book's design. `book_generated.pdf` is committed alongside
-   the curated `book.pdf` so a grader can compare both without compiling.
+   chapter → an 11-page `book_generated.pdf`). The pipeline now runs **once per
+   chapter** (Researcher → Writer → Reviewer → LaTeX), so each chapter gets the
+   model's full output budget and comes out full-length (600–900 words, 6–7 styled
+   `\section`s, **bold** terms, a `takeaway` callout, `\cite` citations). The
+   result, `book_generated.pdf`, is a complete **21-page** crew-authored book with
+   every required element and a 40+ source bibliography — committed alongside the
+   curated `book.pdf` so a grader can open both without compiling.
 4. The 2026 architecture deck discusses memory, durable state, human gates,
    tracing and broader observability. The project implements config, retries,
    gatekeeping, tests and logs, but not persistent memory, RAG, human-in-the-loop,

@@ -3,7 +3,7 @@
 [![CI](https://github.com/yosefshanaa/HW3/actions/workflows/ci.yml/badge.svg)](https://github.com/yosefshanaa/HW3/actions/workflows/ci.yml)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Tests 72](https://img.shields.io/badge/tests-72%20passing-brightgreen.svg)](#quality--ci)
+[![Tests 73](https://img.shields.io/badge/tests-73%20passing-brightgreen.svg)](#quality--ci)
 [![Coverage 96%](https://img.shields.io/badge/coverage-96%25-brightgreen.svg)](#quality--ci)
 
 A production-style, agent-based content factory: it turns a single topic string
@@ -32,19 +32,18 @@ The repository ships **two compiled PDFs**, and it matters which is which:
 
 | File | What it is | Who wrote the prose | Pages |
 |------|-----------|---------------------|-------|
-| [`latex/book.pdf`](latex/book.pdf) | **The deliverable.** Fully designed, every required element, guaranteed-correct BiDi. | Human-curated prose in a hand-authored LaTeX structure (ADR-6). | 17 |
-| [`latex/book_generated.pdf`](latex/book_generated.pdf) | **Evidence the crew works.** Built from a live CrewAI run by the same pipeline + design system. | **The CrewAI agents**, rendered through the Markdown→LaTeX converter. | 11 |
+| [`latex/book_generated.pdf`](latex/book_generated.pdf) | **The crew-authored book.** Written end-to-end by the CrewAI pipeline, then typeset by the same design system. | **The CrewAI agents** — every chapter, live. | 21 |
+| [`latex/book.pdf`](latex/book.pdf) | **The hand-curated reference edition.** Identical design; prose polished by hand for guaranteed-perfect BiDi. | Human-curated, hand-authored LaTeX (ADR-6). | 17 |
 
-**Why two?** The assignment is graded on the *wrapper* of the deliverable (correct
-BiDi, real formulas, linked citations, tables that fit the page — §13.2). To make
-that **deterministic and reproducible**, `book.pdf` keeps the structural LaTeX
-human-controlled and the prose curated (ADR-6). `book_generated.pdf` is the proof
-that the agents genuinely produce a structured, multi-section, cited book — its
-prose, sections, callout boxes and bibliography all come from the live crew. You
-can rebuild it yourself in one command (see [below](#regenerate-the-agent-book)).
-
-The agent book is a real authored artifact, not a stub: each chapter has 3–4
-styled sections, bold key terms, a *takeaway* callout, and the crew’s own sources.
+**Why two?** `book_generated.pdf` is the real thing the assignment asks for — the
+agents write the **whole book**: the pipeline runs **once per chapter**
+(Researcher → Writer → Reviewer → LaTeX), so each chapter comes out full-length
+(600–900 words, 6–7 sections), with bold key terms, a *takeaway* callout, `\cite`
+citations and the crew's own 40+ source bibliography. `book.pdf` is the same book
+with the prose hand-polished, kept as a guaranteed-clean reference because the
+grade is partly on the *wrapper* (correct BiDi, formulas, linked citations, tables
+that fit the page — §13.2) and curated prose removes all typesetting risk (ADR-6).
+Rebuild the crew book yourself in one command (see [below](#regenerate-the-agent-book)).
 
 <p align="center">
   <img src="docs/img/agent-book-sample.png" width="46%" alt="A page of the crew-authored book_generated.pdf">
@@ -149,7 +148,7 @@ cd latex && ./build.sh main_generated  # → book_generated.pdf
 ## Quality & CI
 
 ```bash
-uv run pytest        # 72 tests · 96% coverage (gate fails under 85%)
+uv run pytest        # 73 tests · 96% coverage (gate fails under 85%)
 uv run ruff check    # lint · zero violations required
 ```
 
@@ -165,7 +164,7 @@ manual review. Other guarantees the project holds itself to:
 - **Cost awareness** — each run reports token usage and an estimated USD cost
   from configured price rates (`gpt-4o-mini` @ $0.15/$0.60 per 1M in/out tokens).
 - **≤150 LOC per file, full docstrings, pinned `uv.lock`, semantic versioning**
-  (code & config both at `1.40`; releases tagged `v1.0.0`…`v1.4.0`).
+  (code & config both at `1.50`; releases tagged `v1.0.0`…`v1.5.0`).
 
 ## Configuration
 

@@ -11,13 +11,17 @@ Status keys: ☐ not started · ◐ in progress · ☑ done. Owner: `dev` (solo)
 > crediting the crew), compiled with LuaLaTeX (TeX Live) and correct Hebrew RTL /
 > English LTR typesetting.
 >
-> **v1.4.0 — crew book enrichment.** The agent-authored book
-> (`latex/book_generated.pdf`, now committed) was upgraded from a thin one-
-> paragraph-per-chapter draft into a richly sectioned book: the agent prompts
-> enforce length + structure, the LLM output budget was raised so the full book
-> is not truncated, and the Markdown→LaTeX converter now turns crew prose into
-> styled `\section`s, `takeaway` callout boxes and `\cite` citations. Re-run it
-> with `python scripts/run_crew.py` (live OpenAI) then `./build.sh main_generated`.
+> **v1.4.0 — the crew writes the whole book.** The agent-authored book
+> (`latex/book_generated.pdf`, now committed, **21 pp**) is produced by running
+> the full pipeline **once per chapter** (Researcher → Writer → Reviewer → LaTeX),
+> so each chapter gets the model's full output budget and comes out full-length
+> (600–900 words, 6–7 styled sections, bold terms, a takeaway box, `\cite`
+> citations, 40+ sources). Supporting fixes: Markdown→LaTeX converter renders
+> crew prose into the book's design; crew-collected bib fields are LaTeX-escaped
+> (a raw `&` in "McKinsey & Company" was a fatal biber error); `AutoFakeBold`
+> keeps bold Hebrew on the Hebrew font; the crew bibliography stays in the Hebrew
+> main language so mixed He/En sources render. Re-run: `python scripts/run_crew.py`
+> (live OpenAI) then `./build.sh main_generated`.
 
 ## Phase 0 — Planning (M0)
 - ☑ **T0.1** Initialise repo, scaffold, `.gitignore`, license, README stub.

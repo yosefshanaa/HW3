@@ -86,28 +86,36 @@ Task chaining uses CrewAI `context` (research → write → review → latex), a
 final task declares `output_pydantic=BookContent` so the crew returns validated,
 structured data instead of free text.
 
-### B1. Enriching the crew output (v1.40)
+### B1. Getting the crew to write the *whole* book (v1.40)
 
 The first crew prose was one thin paragraph per chapter (≈60 words → an 11-page
-`book_generated.pdf`). Three coupled changes closed the gap to the curated book:
+`book_generated.pdf`). The root cause was **asking for all 8 chapters in one
+response**: any model rations a single completion, and CrewAI bundles it into one
+`BookContent` JSON — so it self-limited to ~300 words/chapter, and pushing harder
+just truncated the JSON to a single chapter. Not an AI limit, a pipeline-shape
+limit. The fix and its supporting changes:
 
-- **Prompt (length + structure):** the Writer task now mandates *"each chapter ≥
-  450 words, 3–4 `## ` sub-sections, a full 110–150-word paragraph under each,
-  **bold** key terms, one `[@key]` citation, and one `> ` takeaway line."* The
-  Reviewer was flipped from "polish" to **"enrich, never shorten"** — LLM editors
-  default to compressing, which was capping length.
-- **Renderer (`shared/latex_text.py`):** the Markdown→LaTeX converter was upgraded
-  so that crew prose inherits the book's *design*, not just its text — `## ` →
-  styled `\section`, `> ` → a brand `takeaway` callout box, and `[@key]` →
-  `\cite{key}` (keys carried through escaping by an indexed placeholder so a `_`
-  in a key is never mangled).
-- **Token headroom (the real bottleneck):** the final task serialises *all*
-  chapters into one `BookContent` JSON. At 450 words/chapter that response
-  exceeded an 8 000-token cap and silently truncated to a single chapter; raising
-  `llm.max_tokens` to 16 000 (and wiring it through `crew_service`) fixed it.
-- **Stable filenames:** generated chapters are now named by position (`01-1`…),
-  not by the crew-chosen id, so they always match `main_generated.tex`'s fixed
-  input list regardless of how the model labels chapters.
+- **Per-chapter generation (the key change):** `crew_service` now runs the full
+  Researcher → Writer → Reviewer → LaTeX crew **once per chapter**, so each chapter
+  gets the model's entire output budget and comes out full-length (600–900 words,
+  6–7 sections). Result: a complete **21-page** crew-authored book.
+- **Prompt (length + structure):** the Writer mandates ≥600 words, 5–6 `## `
+  sub-sections (a full 110–150-word paragraph each), **bold** terms, a `[@key]`
+  citation, and a `> ` takeaway line. The Reviewer is **"enrich, never shorten"** —
+  LLM editors default to compressing.
+- **Renderer (`shared/latex_text.py`):** crew Markdown inherits the book's design —
+  `## ` → styled `\section`, `> ` → a brand `takeaway` box, `[@key]` →
+  `\cite{key}` (keys carried through escaping by an indexed placeholder).
+- **Compile-safety lessons (live-LLM output breaks LaTeX in ways curated text does
+  not):** crew bib fields are now LaTeX-escaped — a raw `&` in author *"McKinsey &
+  Company"* was a **fatal** biber error that aborted the whole build; `AutoFakeBold`
+  keeps **bold Hebrew** on the Hebrew font (David CLM ships no bold `.otf`, so
+  `\textbf{Hebrew}` was silently falling back to Latin Modern and dropping glyphs);
+  and the crew bibliography stays in the Hebrew main language so the agents' mixed
+  Hebrew/English source titles all render. Math passthrough was tried and **removed**
+  — letting the LLM emit raw LaTeX math is exactly the fragility ADR-6 avoids.
+- **Stable filenames:** generated chapters are named by position (`01-1`…), not by
+  the crew-chosen id, so they always match `main_generated.tex`'s input list.
 
 ---
 
