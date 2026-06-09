@@ -41,6 +41,15 @@ This report maps the project against the five course PDFs reviewed from
    web search optional and off by default, using curated facts for repeatable
    grading. That is a deliberate architecture trade-off, not a missing assignment
    requirement.
+
+   *Update (v1.40):* the crew prose was thin in early versions (one paragraph per
+   chapter → an 11-page `book_generated.pdf`). The pipeline now produces a rich,
+   sectioned book — each chapter has 3–4 styled `\section`s, **bold** terms, a
+   `takeaway` callout box, and (when present) `\cite` citations — by enforcing
+   length/structure in the agent prompts, raising the LLM output budget so the
+   full book is not truncated, and upgrading the Markdown→LaTeX converter so crew
+   prose inherits the book's design. `book_generated.pdf` is committed alongside
+   the curated `book.pdf` so a grader can compare both without compiling.
 4. The 2026 architecture deck discusses memory, durable state, human gates,
    tracing and broader observability. The project implements config, retries,
    gatekeeping, tests and logs, but not persistent memory, RAG, human-in-the-loop,

@@ -3,45 +3,79 @@
 [![CI](https://github.com/yosefshanaa/HW3/actions/workflows/ci.yml/badge.svg)](https://github.com/yosefshanaa/HW3/actions/workflows/ci.yml)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Tests 72](https://img.shields.io/badge/tests-72%20passing-brightgreen.svg)](#quality--ci)
 [![Coverage 96%](https://img.shields.io/badge/coverage-96%25-brightgreen.svg)](#quality--ci)
 
 A production-style, agent-based content factory: it turns a single topic string
-into a finished, professionally typeset **17-page bilingual (Hebrew/English)
-mini-book** — *“How to Correctly Build a Start-up”* (כיצד לבנות סטארט-אפ נכון).
-A **CrewAI** team drafts the prose; a hand-authored **LuaLaTeX** layer typesets
-it with correct right-to-left Hebrew and left-to-right English/code/math.
+into a finished, professionally typeset **bilingual (Hebrew/English) mini-book** —
+*“How to Correctly Build a Start-up”* (כיצד לבנות סטארט-אפ נכון). A **CrewAI**
+team (Researcher → Writer → Reviewer → LaTeX Engineer) drafts the prose; a
+**LuaLaTeX** layer typesets it with correct right-to-left Hebrew and left-to-right
+English, code, and math.
 
-> **Course:** *Mass Production of AI Agents* — Dr. Yoram Segal · Assignment 03.
-> **The deliverable is [`latex/book.pdf`](latex/book.pdf)** (17 pp).
-> The thesis it demonstrates: *“a production agent is a system, not a prompt.”*
+> **Course:** *Mass Production of AI Agents* — Dr. Yoram Segal · Assignment 03 (§13).
+> **Authors:** Yosef Shanaa · Ahmad Kais (group `ahk-yosi`).
+> **Thesis it demonstrates:** *“a production agent is a system, not a prompt.”*
+
+<p align="center">
+  <img src="docs/img/cover.png" width="32%" alt="Designed cover (RTL Hebrew title, authors, course, lecturer)">
+  <img src="docs/img/sample-formulas.png" width="32%" alt="Boxed LTV/CAC/Runway formulas inside RTL Hebrew prose">
+  <img src="docs/img/sample-graph-table.png" width="32%" alt="Python-generated LTV-vs-CAC chart and the funding-rounds table">
+</p>
+<p align="center"><sub>book.pdf — cover · boxed math formulas in BiDi prose · a Python-made chart + a table</sub></p>
 
 ---
 
-## The deliverable at a glance
+## Two books, one pipeline (read this first)
 
-Every element the assignment (§13.1) requires is present, and the LaTeX log
-builds with **zero overfull boxes and full glyph coverage**:
+The repository ships **two compiled PDFs**, and it matters which is which:
+
+| File | What it is | Who wrote the prose | Pages |
+|------|-----------|---------------------|-------|
+| [`latex/book.pdf`](latex/book.pdf) | **The deliverable.** Fully designed, every required element, guaranteed-correct BiDi. | Human-curated prose in a hand-authored LaTeX structure (ADR-6). | 17 |
+| [`latex/book_generated.pdf`](latex/book_generated.pdf) | **Evidence the crew works.** Built from a live CrewAI run by the same pipeline + design system. | **The CrewAI agents**, rendered through the Markdown→LaTeX converter. | 11 |
+
+**Why two?** The assignment is graded on the *wrapper* of the deliverable (correct
+BiDi, real formulas, linked citations, tables that fit the page — §13.2). To make
+that **deterministic and reproducible**, `book.pdf` keeps the structural LaTeX
+human-controlled and the prose curated (ADR-6). `book_generated.pdf` is the proof
+that the agents genuinely produce a structured, multi-section, cited book — its
+prose, sections, callout boxes and bibliography all come from the live crew. You
+can rebuild it yourself in one command (see [below](#regenerate-the-agent-book)).
+
+The agent book is a real authored artifact, not a stub: each chapter has 3–4
+styled sections, bold key terms, a *takeaway* callout, and the crew’s own sources.
+
+<p align="center">
+  <img src="docs/img/agent-book-sample.png" width="46%" alt="A page of the crew-authored book_generated.pdf">
+  <br><sub>book_generated.pdf — a chapter authored live by the CrewAI agents (same design system)</sub>
+</p>
+
+## The deliverable’s required elements (assignment §13.1)
+
+Every element the assignment requires is present in `book.pdf`, and the LaTeX log
+builds with **zero overfull boxes and full glyph coverage** (verified each build):
 
 | # | Required element | Where it lives in the book |
 |---|------------------|----------------------------|
-| 1 | Cover: topic, authors, date, course, lecturer | [`latex/cover.tex`](latex/cover.tex) |
-| 2 | Table of contents, chapters, page headers & footers | [`latex/main.tex`](latex/main.tex), [`preamble.tex`](latex/preamble.tex) |
+| 1 | Cover: topic, **authors**, date, course, lecturer | [`latex/cover.tex`](latex/cover.tex) |
+| 2 | Table of contents, chapters, page headers & footers | [`main.tex`](latex/main.tex) · `fancyhdr` in [`preamble.tex`](latex/preamble.tex) |
 | 3 | An **image** (raster illustration) | cover — `assets/figures/illustration.png` |
-| 4 | A **graph generated by Python** (vector PDF) | J-curve, LTV-vs-CAC bars, AARRR funnel |
-| 5 | A **table** | ch. *Unit Economics* (funding rounds) · *Metrics* (North-Star) |
-| 6 | A **“fancy” math formula** (real math) | ch. *Unit Economics* — boxed LTV / CAC / Runway |
-| 7 | A chapter with correct **Hebrew↔English BiDi** | ch. *Lean Startup* — RTL prose + LTR terms & a code line |
-| 8 | A **TikZ** diagram | Build–Measure–Learn loop, risk chain, roadmap, growth levers |
-| 9 | A **bibliography** with linked citations | `references.bib` + `biblatex`/`biber` + `hyperref` |
+| 4 | A **graph generated by Python** (vector PDF) | J-curve, LTV-vs-CAC bars, AARRR funnel — [`figure_service.py`](src/startup_book/services/figure_service.py) |
+| 5 | A **table** (×2) | funding rounds — [`06-economics.tex`](latex/chapters/06-economics.tex) · North-Star — [`06c-metrics.tex`](latex/chapters/06c-metrics.tex) |
+| 6 | A **“fancy” math formula** (real math) | boxed LTV / CAC / Runway — [`06-economics.tex`](latex/chapters/06-economics.tex) |
+| 7 | A chapter with correct **Hebrew↔English BiDi** | [`03-lean.tex`](latex/chapters/03-lean.tex) — RTL prose + LTR terms, code & math |
+| 8 | A **TikZ** diagram | Build–Measure–Learn loop, risk chain, roadmap, growth levers — [`latex/elements/`](latex/elements/) |
+| 9 | A **bibliography** with linked citations | [`references.bib`](latex/references.bib) + `biblatex`/`biber` + `hyperref` |
 
-See [`docs/COURSE_ALIGNMENT.md`](docs/COURSE_ALIGNMENT.md) for the explicit
-mapping against the five course PDFs.
+See [`docs/COURSE_ALIGNMENT.md`](docs/COURSE_ALIGNMENT.md) for the explicit mapping
+against all five course PDFs.
 
 ## How it works
 
 ```
             ┌──────────────── BookBuilderSDK (single entry point) ───────────────┐
- topic ───▶ │  CrewService          FigureService     LatexService   CompileService│ ──▶ book.pdf
+ topic ───▶ │  CrewService          FigureService     LatexService   CompileService│ ──▶ book*.pdf
             │  Researcher                                                          │     + token/
             │   → Writer    ─context→  matplotlib  →   BookContent  →  lualatex×3   │       cost report
             │   → Reviewer             vector PDFs     → .tex/.bib    + biber       │
@@ -49,19 +83,21 @@ mapping against the five course PDFs.
             └──────────────────────────┬───────────────────────────────────────────┘
                                         ▼
                                  ApiGatekeeper  ──▶  OpenAI
-                          (rate-limit · retry · backpressure · log)
+                          (FIFO admission · rate-limit · retry · backpressure · log)
 ```
 
-The four agents pass work forward via CrewAI `context` (no manual copy), exactly
-the Researcher → Writer → Reviewer pattern from the course’s CrewAI materials.
-**Every** LLM call is funnelled through the `ApiGatekeeper`, so no agent step
-hits the network unmetered. The structural LaTeX is human-controlled (ADR-6);
-the crew fills chapter *prose*, keeping BiDi correctness deterministic.
+The four agents pass work forward via CrewAI `context` (no manual copy) — exactly
+the Researcher → Writer → Reviewer pattern from the course’s CrewAI materials,
+extended with a LaTeX-Engineer agent that returns a validated `BookContent`
+(`output_pydantic`). **Every** LLM call is funnelled through the `ApiGatekeeper`,
+so no agent step hits the network unmetered. The crew’s Markdown is turned into
+*styled* LaTeX by [`shared/latex_text.py`](src/startup_book/shared/latex_text.py):
+`##` → `\section`, `> …` → a brand *takeaway* box, `[@key]` → `\cite{key}`.
 
 ## Quickstart
 
-Prerequisites: **[`uv`](https://docs.astral.sh/uv/)** (manages Python 3.12), and
-a **LuaLaTeX** engine for the final compile.
+Prerequisites: **[`uv`](https://docs.astral.sh/uv/)** (manages Python 3.12) and a
+**LuaLaTeX** engine for the final compile.
 
 ```bash
 # 1. Python deps (uv fetches Python 3.12 automatically)
@@ -87,22 +123,21 @@ uv run startup-book content      # run the crew, print the chapter headings
 uv run startup-book --version
 ```
 
-## Build the book directly (no Python)
+### Build a book directly (no Python)
 
 ```bash
-cd latex && ./build.sh           # → book.pdf   (lualatex → biber → lualatex → lualatex)
+cd latex && ./build.sh                 # → book.pdf            (curated deliverable)
+cd latex && ./build.sh main_generated  # → book_generated.pdf  (crew-authored)
+# build.sh runs: lualatex → biber → lualatex → lualatex  (assignment §13.2)
 ```
 
-`latex/book.pdf` is the single finished deliverable: a fully designed mini-book
-— TikZ chapter banners, callout boxes, highlighted formulas, four TikZ diagrams,
-a designed cover, and a closing **colophon** crediting the CrewAI pipeline.
-
-The crew’s raw output is kept as **evidence** that the agents really ran
-(`latex/generated/` prose, `results/` logs) and compiles into a separate,
-non-deliverable variant:
+### Regenerate the agent book
 
 ```bash
-cd latex && ./build.sh main_generated   # → book_generated.pdf (crew prose; evidence only)
+# Live OpenAI run: re-author the crew prose into latex/generated/ + an evidence
+# JSON in results/, then compile the agent book.
+python scripts/run_crew.py
+cd latex && ./build.sh main_generated  # → book_generated.pdf
 ```
 
 > **Hebrew/English BiDi.** The book uses **babel `bidi=basic`** under LuaLaTeX —
@@ -114,7 +149,7 @@ cd latex && ./build.sh main_generated   # → book_generated.pdf (crew prose; ev
 ## Quality & CI
 
 ```bash
-uv run pytest        # 65 tests · 96% coverage (gate fails under 85%)
+uv run pytest        # 72 tests · 96% coverage (gate fails under 85%)
 uv run ruff check    # lint · zero violations required
 ```
 
@@ -128,14 +163,15 @@ manual review. Other guarantees the project holds itself to:
 - **Config over code** — all tunables live in versioned `config/*.json`; secrets
   come only from `.env` (git-ignored). Change the model without touching code.
 - **Cost awareness** — each run reports token usage and an estimated USD cost
-  from configured price rates.
-- **≤150 LOC per file, full docstrings, pinned `uv.lock`, semantic versioning.**
+  from configured price rates (`gpt-4o-mini` @ $0.15/$0.60 per 1M in/out tokens).
+- **≤150 LOC per file, full docstrings, pinned `uv.lock`, semantic versioning**
+  (code & config both at `1.40`; releases tagged `v1.0.0`…`v1.4.0`).
 
 ## Configuration
 
 | File | Purpose |
 |------|---------|
-| `config/setup.json` | book metadata, chapter outline, model, build settings |
+| `config/setup.json` | book metadata, chapter outline, model, `max_tokens`, build settings |
 | `config/rate_limits.json` | API gatekeeper rate limits |
 | `.env` | `OPENAI_API_KEY` (git-ignored; copy from `.env-example`) |
 
@@ -149,11 +185,15 @@ src/startup_book/
 ├── sdk/sdk.py            # BookBuilderSDK — single business entry point
 ├── services/             # crew · figure · latex · compile orchestrators
 ├── agents/               # CrewAI Agent + Task factories (role/goal/context)
-└── shared/               # gatekeeper · config · models · version · errors
-latex/                    # the mini-book: preamble, cover, chapters, bib, build.sh
+└── shared/               # gatekeeper · config · models · latex_text · version · errors
+latex/                    # the mini-book: preamble, cover, chapters, elements, bib, build.sh
+├── chapters/             # curated chapters (book.pdf)
+├── generated/            # crew-authored chapters (book_generated.pdf) — committed evidence
+└── elements/             # the required figures/tables/formulas/TikZ, interleaved into both
 assets/figures/           # Python-generated figures (matplotlib)
 config/                   # versioned JSON configuration
-docs/                     # PRD · PLAN · TODO · per-mechanism PRDs · PROMPTS · alignment
+docs/                     # PRD · PLAN · TODO · per-mechanism PRDs · PROMPTS · alignment · img/
+scripts/run_crew.py       # one-shot: run the crew live and write the evidence
 tests/                    # unit + integration (≥85% gate, hermetic — no network/LaTeX)
 notebooks/                # results / cost analysis
 ```
@@ -163,8 +203,11 @@ notebooks/                # results / cost analysis
 The architecture and its trade-offs are recorded as ADRs in
 [`docs/PLAN.md`](docs/PLAN.md): CrewAI for a linear role-based team (vs LangGraph),
 the gatekeeper seam, LuaLaTeX + babel for BiDi, deterministic grounded content,
-`uv` + pinned Python, and LaTeX-as-committed-source. Product scope and the
-required-element checklist live in [`docs/PRD.md`](docs/PRD.md).
+`uv` + pinned Python, and **LaTeX-as-committed-source** (ADR-6: structural LaTeX
+is human-authored; the crew fills prose — which is exactly why there are two
+books). Product scope and the required-element checklist live in
+[`docs/PRD.md`](docs/PRD.md); the prompt-engineering log is in
+[`docs/PROMPTS.md`](docs/PROMPTS.md).
 
 ## License & credits
 

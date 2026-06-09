@@ -86,6 +86,29 @@ Task chaining uses CrewAI `context` (research → write → review → latex), a
 final task declares `output_pydantic=BookContent` so the crew returns validated,
 structured data instead of free text.
 
+### B1. Enriching the crew output (v1.40)
+
+The first crew prose was one thin paragraph per chapter (≈60 words → an 11-page
+`book_generated.pdf`). Three coupled changes closed the gap to the curated book:
+
+- **Prompt (length + structure):** the Writer task now mandates *"each chapter ≥
+  450 words, 3–4 `## ` sub-sections, a full 110–150-word paragraph under each,
+  **bold** key terms, one `[@key]` citation, and one `> ` takeaway line."* The
+  Reviewer was flipped from "polish" to **"enrich, never shorten"** — LLM editors
+  default to compressing, which was capping length.
+- **Renderer (`shared/latex_text.py`):** the Markdown→LaTeX converter was upgraded
+  so that crew prose inherits the book's *design*, not just its text — `## ` →
+  styled `\section`, `> ` → a brand `takeaway` callout box, and `[@key]` →
+  `\cite{key}` (keys carried through escaping by an indexed placeholder so a `_`
+  in a key is never mangled).
+- **Token headroom (the real bottleneck):** the final task serialises *all*
+  chapters into one `BookContent` JSON. At 450 words/chapter that response
+  exceeded an 8 000-token cap and silently truncated to a single chapter; raising
+  `llm.max_tokens` to 16 000 (and wiring it through `crew_service`) fixed it.
+- **Stable filenames:** generated chapters are now named by position (`01-1`…),
+  not by the crew-chosen id, so they always match `main_generated.tex`'s fixed
+  input list regardless of how the model labels chapters.
+
 ---
 
 ## Recommended practices (lessons)

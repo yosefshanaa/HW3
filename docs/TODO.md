@@ -4,14 +4,20 @@
 Status keys: ☐ not started · ◐ in progress · ☑ done. Owner: `dev` (solo) /
 `ai` (AI-assisted). Each task lists its **Definition of Done (DoD)**.
 
-> **Overall:** ✅ **All phases complete (v1.3.0).** Software, book source, crew,
-> tests at 96% coverage, docs, and the final compile are done. The single
-> finished deliverable is `latex/book.pdf` (17 pp, within the ~15-page target) — fully
-> redesigned (TikZ chapter banners, callouts, highlighted formulas, five TikZ
-> diagrams, colophon crediting the crew), compiled with LuaLaTeX (TeX Live) and
-> correct Hebrew RTL / English LTR typesetting. The crew's raw output
-> (`latex/generated/`, `results/`) is retained as evidence and is buildable into
-> a separate variant (`./build.sh main_generated`).
+> **Overall:** ✅ **All phases complete (v1.4.0).** Software, book source, crew,
+> tests, docs, and the final compile are done. The polished deliverable is
+> `latex/book.pdf` (17 pp, within the ~15-page target) — fully redesigned (TikZ
+> chapter banners, callouts, highlighted formulas, five TikZ diagrams, colophon
+> crediting the crew), compiled with LuaLaTeX (TeX Live) and correct Hebrew RTL /
+> English LTR typesetting.
+>
+> **v1.4.0 — crew book enrichment.** The agent-authored book
+> (`latex/book_generated.pdf`, now committed) was upgraded from a thin one-
+> paragraph-per-chapter draft into a richly sectioned book: the agent prompts
+> enforce length + structure, the LLM output budget was raised so the full book
+> is not truncated, and the Markdown→LaTeX converter now turns crew prose into
+> styled `\section`s, `takeaway` callout boxes and `\cite` citations. Re-run it
+> with `python scripts/run_crew.py` (live OpenAI) then `./build.sh main_generated`.
 
 ## Phase 0 — Planning (M0)
 - ☑ **T0.1** Initialise repo, scaffold, `.gitignore`, license, README stub.
