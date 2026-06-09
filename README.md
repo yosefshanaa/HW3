@@ -3,8 +3,8 @@
 [![CI](https://github.com/yosefshanaa/HW3/actions/workflows/ci.yml/badge.svg)](https://github.com/yosefshanaa/HW3/actions/workflows/ci.yml)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Tests 73](https://img.shields.io/badge/tests-73%20passing-brightgreen.svg)](#quality--ci)
-[![Coverage 96%](https://img.shields.io/badge/coverage-96%25-brightgreen.svg)](#quality--ci)
+[![Tests 101](https://img.shields.io/badge/tests-101%20passing-brightgreen.svg)](#quality--ci)
+[![Coverage 98%](https://img.shields.io/badge/coverage-98%25-brightgreen.svg)](#quality--ci)
 
 A production-style, agent-based content factory: it turns a single topic string
 into a finished, professionally typeset **bilingual (Hebrew/English) mini-book** —
@@ -16,6 +16,13 @@ English, code, and math.
 > **Course:** *Mass Production of AI Agents* — Dr. Yoram Segal · Assignment 03 (§13).
 > **Authors:** Yosef Shanaa · Ahmad Kais (group `ahk-yosi`).
 > **Thesis it demonstrates:** *“a production agent is a system, not a prompt.”*
+
+> 📕 **The AI-written deliverable is [`latex/book_generated.pdf`](latex/book_generated.pdf)** —
+> every chapter authored live by the CrewAI agents (22 pp). The file named
+> [`latex/book.pdf`](latex/book.pdf) is a **hand-polished reference copy** of the
+> same book, kept only as a typesetting-clean fallback — see
+> [Two books](#two-books-one-pipeline-read-this-first). Despite the names, the
+> **agent-generated** book is the one with the `_generated` suffix.
 
 <p align="center">
   <img src="docs/img/cover.png" width="32%" alt="Designed cover (RTL Hebrew title, authors, course, lecturer)">
