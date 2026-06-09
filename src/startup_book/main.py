@@ -28,6 +28,9 @@ def _build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("figures", help="(re)generate the Python figures only")
     sub.add_parser("content", help="run the crew and print chapter headings only")
+
+    audit = sub.add_parser("audit", help="report LaTeX build health from the compiler log")
+    audit.add_argument("--log", default=None, help="path to a .log (defaults to latex/main.log)")
     return parser
 
 
@@ -57,6 +60,17 @@ def main(argv: list[str] | None = None) -> int:
         for chapter in content.chapters:
             print(f"- {chapter.heading}")
         return 0
+    if args.command == "audit":
+        from pathlib import Path
+
+        report = sdk.audit(Path(args.log) if args.log else None)
+        print(f"Log:                 {report.log_path}")
+        print(f"Pages:               {report.pages}")
+        print(f"Overfull boxes:      {report.overfull}")
+        print(f"Missing glyphs:      {report.missing_glyphs}")
+        print(f"Undefined citations: {report.undefined_citations}")
+        print("Health: OK" if report.healthy else "Health: ISSUES FOUND")
+        return 0 if report.healthy else 1
     result = sdk.build(args.topic)
     print(f"PDF: {result.pdf_path} ({result.pages} pages)")
     print(f"Tokens: {result.token_usage.total_tokens} · est. ${result.estimated_cost_usd}")

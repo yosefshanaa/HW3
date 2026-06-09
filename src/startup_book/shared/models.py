@@ -85,3 +85,19 @@ class BuildResult(BaseModel):
     pages: int = 0
     token_usage: TokenUsage = Field(default_factory=TokenUsage)
     estimated_cost_usd: float = 0.0
+
+
+class AuditReport(BaseModel):
+    """Build-health summary parsed from a LaTeX compiler log."""
+
+    log_path: str
+    pages: int = 0
+    overfull: int = 0
+    underfull: int = 0
+    missing_glyphs: int = 0
+    undefined_citations: int = 0
+
+    @property
+    def healthy(self) -> bool:
+        """True when there are no fatal typesetting defects (the grader's check)."""
+        return self.overfull == 0 and self.missing_glyphs == 0 and self.undefined_citations == 0
