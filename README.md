@@ -109,6 +109,22 @@ crew’s Markdown is turned into *styled* LaTeX by
 [`shared/latex_text.py`](src/startup_book/shared/latex_text.py): `##` → `\section`,
 `> …` → a brand *takeaway* box, `[@key]` → `\cite{key}`.
 
+## Documentation
+
+The project follows the course's pro-software workflow, so the design is written
+down **before** the code: a **PRD → PLAN → TODO** trio lives under
+[`docs/`](docs/), alongside per-mechanism PRDs and supporting notes.
+
+| Doc | What it covers |
+|-----|----------------|
+| [`docs/PRD.md`](docs/PRD.md) | **Product Requirements** — goals, scope, functional requirements (`FR-B*`), acceptance criteria |
+| [`docs/PLAN.md`](docs/PLAN.md) | **Architecture & technical plan** — C4 model, ADRs, versioning, the §15 concurrency model |
+| [`docs/TODO.md`](docs/TODO.md) | **Task tracking** — the work broken down and checked off |
+| [`docs/PRD_crewai_pipeline.md`](docs/PRD_crewai_pipeline.md) · [`_api_gatekeeper`](docs/PRD_api_gatekeeper.md) · [`_latex_generation`](docs/PRD_latex_generation.md) | Per-mechanism PRDs for the three core subsystems |
+| [`docs/QUALITY_AND_EXTENSION.md`](docs/QUALITY_AND_EXTENSION.md) | ISO/IEC 25010 quality map + extension points (swap model/provider/template, add an agent) |
+| [`docs/PROMPTS.md`](docs/PROMPTS.md) | Prompt-engineering log (ספר הפרומפטים) |
+| [`docs/COURSE_ALIGNMENT.md`](docs/COURSE_ALIGNMENT.md) | Point-by-point mapping of the deliverable to the assignment spec |
+
 ## Quickstart
 
 Prerequisites: **[`uv`](https://docs.astral.sh/uv/)** (manages Python 3.12) and a
