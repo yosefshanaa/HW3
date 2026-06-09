@@ -1,9 +1,8 @@
-"""Crew service: assemble the CrewAI crew and run it through the gatekeeper.
+"""Crew service: the orchestration seam between the SDK and CrewAI.
 
-Why: this is the orchestration seam between the SDK and CrewAI. It builds the
-sequential crew, runs ``kickoff`` *through the API gatekeeper* (so the external
-operation is rate-limited, retried and logged — guidelines §5), and parses the
-structured result into a :class:`BookContent`.
+Builds a sequential crew per chapter, runs ``kickoff`` through the API gatekeeper
+(rate-limited, retried, logged — §5), and parses the result into a
+:class:`BookContent`. Chapters run concurrently (§15); see PLAN.md §8.
 """
 
 from __future__ import annotations
@@ -21,13 +20,7 @@ from startup_book.services.gatekept_llm import GatekeptLLM
 from startup_book.shared.config import ConfigManager
 from startup_book.shared.errors import CrewExecutionError
 from startup_book.shared.gatekeeper import ApiGatekeeper
-from startup_book.shared.models import (
-    BookContent,
-    Chapter,
-    ChapterSpec,
-    Source,
-    TokenUsage,
-)
+from startup_book.shared.models import BookContent, Chapter, ChapterSpec, Source, TokenUsage
 
 logger = logging.getLogger("startup_book.crew")
 
@@ -54,15 +47,10 @@ class CrewService:
     def _run_chapter(self, topic: str, heading: str) -> tuple[object, object]:
         """Run the full Researcher->Writer->Reviewer->LaTeX crew for ONE chapter.
 
-        Running per chapter (rather than all chapters in a single response) gives
-        each chapter the model's full output budget, so chapters come out full
-        length instead of being rationed into a single capped response.
-
-        A **fresh** LLM is built per chapter so its token counter measures only
-        this chapter (counted once), and so concurrent chapters never share a
-        mutable usage accumulator. Usage is read straight from the LLM —
-        ``crew.usage_metrics`` sums per-agent and would multiply the shared
-        wrapper's total by the agent count, so it is unreliable here.
+        Running per chapter gives each chapter the model's full output budget. A
+        **fresh** LLM is built per chapter so its token counter measures only this
+        chapter (read straight from the LLM — ``crew.usage_metrics`` over-counts a
+        shared wrapper) and concurrent chapters never share a usage accumulator.
         """
         llm = self._build_llm()
         agents = build_agents(llm)
@@ -118,12 +106,11 @@ class CrewService:
     ) -> list[tuple[object, object]]:
         """Run every chapter crew concurrently and return results in outline order.
 
-        Chapter generation is I/O-bound (network LLM calls), so threads are the
-        right tool (§15.1). The pool width is capped at the rate-limit's
-        ``concurrent_max`` so chapter parallelism never exceeds the concurrency
-        budget — the gatekeeper still independently throttles each LLM call, so
-        no chapter thread holds a gatekeeper slot while waiting (no deadlock).
-        Each task builds its own LLM, so no usage counter is shared across threads.
+        Chapter generation is I/O-bound, so threads fit (§15.1). The pool is
+        capped at ``concurrent_max`` so chapter parallelism never exceeds the
+        configured budget; the gatekeeper independently throttles each LLM call,
+        so no thread holds a gatekeeper slot while idle (no deadlock). Full
+        rationale + thread-safety note: PLAN.md §8.
         """
         max_workers = max(1, min(len(specs), self._config.rate_limit().concurrent_max))
         results: list[tuple[object, object]] = [(None, None)] * len(specs)

@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from startup_book.shared.latex_text import escape_latex, heading_to_latex, markdown_to_latex
+from startup_book.shared.latex_markdown import markdown_to_latex
+from startup_book.shared.latex_text import escape_latex, heading_to_latex
 
 
 def test_escape_specials() -> None:

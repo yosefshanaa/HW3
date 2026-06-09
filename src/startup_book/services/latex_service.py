@@ -14,7 +14,8 @@ from pathlib import Path
 
 from startup_book.constants import LATEX_DIR
 from startup_book.shared.config import ConfigManager
-from startup_book.shared.latex_text import escape_latex, heading_to_latex, markdown_to_latex
+from startup_book.shared.latex_markdown import markdown_to_latex
+from startup_book.shared.latex_text import escape_latex, heading_to_latex
 from startup_book.shared.models import BookContent, Source
 
 
