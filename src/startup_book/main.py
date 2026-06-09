@@ -28,6 +28,9 @@ def _build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("figures", help="(re)generate the Python figures only")
     sub.add_parser("content", help="run the crew and print chapter headings only")
+
+    audit = sub.add_parser("audit", help="report LaTeX build health from the compiler log")
+    audit.add_argument("--log", default=None, help="path to a .log (defaults to latex/main.log)")
     return parser
 
 
@@ -37,7 +40,12 @@ def main(argv: list[str] | None = None) -> int:
     Args:
         argv: Optional argument list (defaults to ``sys.argv``).
     """
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+    from startup_book.shared.logging_setup import configure_logging
+
+    try:
+        configure_logging()  # JSON-line logs + secret redaction (§7.4)
+    except Exception:  # pragma: no cover - never let logging setup crash the CLI
+        logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     args = _build_parser().parse_args(argv)
 
     from startup_book import BookBuilderSDK
@@ -52,6 +60,17 @@ def main(argv: list[str] | None = None) -> int:
         for chapter in content.chapters:
             print(f"- {chapter.heading}")
         return 0
+    if args.command == "audit":
+        from pathlib import Path
+
+        report = sdk.audit(Path(args.log) if args.log else None)
+        print(f"Log:                 {report.log_path}")
+        print(f"Pages:               {report.pages}")
+        print(f"Overfull boxes:      {report.overfull}")
+        print(f"Missing glyphs:      {report.missing_glyphs}")
+        print(f"Undefined citations: {report.undefined_citations}")
+        print("Health: OK" if report.healthy else "Health: ISSUES FOUND")
+        return 0 if report.healthy else 1
     result = sdk.build(args.topic)
     print(f"PDF: {result.pdf_path} ({result.pages} pages)")
     print(f"Tokens: {result.token_usage.total_tokens} · est. ${result.estimated_cost_usd}")

@@ -13,7 +13,7 @@ from pathlib import Path
 
 from startup_book.shared.config import ConfigManager
 from startup_book.shared.gatekeeper import ApiGatekeeper
-from startup_book.shared.models import BookContent, BuildResult, TokenUsage
+from startup_book.shared.models import AuditReport, BookContent, BuildResult, TokenUsage
 
 
 class BookBuilderSDK:
@@ -56,6 +56,12 @@ class BookBuilderSDK:
         from startup_book.services.compile_service import CompileService
 
         return CompileService(self.config).compile()
+
+    def audit(self, log_path: Path | None = None) -> AuditReport:
+        """Parse a LaTeX build log into a health report (pages + zero-defect checks)."""
+        from startup_book.services.audit_service import AuditService
+
+        return AuditService(log_path).audit()
 
     def build(self, topic: str | None = None) -> BuildResult:
         """Run the full pipeline end to end and return the build result.

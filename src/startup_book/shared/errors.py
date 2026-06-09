@@ -29,6 +29,10 @@ class CrewExecutionError(StartupBookError):
     """The CrewAI pipeline failed to produce content."""
 
 
+class AuditError(StartupBookError):
+    """A build-health audit could not run (e.g. the LaTeX log is missing)."""
+
+
 class LatexCompileError(StartupBookError):
     """The LaTeX build returned a non-zero exit code.
 

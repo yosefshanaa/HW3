@@ -135,6 +135,7 @@ uv run startup-book build
 # Or work a single stage:
 uv run startup-book figures      # regenerate the matplotlib figures (no API key)
 uv run startup-book content      # run the crew, print the chapter headings
+uv run startup-book audit        # build-health from the LaTeX log (no API key)
 uv run startup-book --version
 ```
 
@@ -164,7 +165,7 @@ cd latex && ./build.sh main_generated  # → book_generated.pdf
 ## Quality & CI
 
 ```bash
-uv run pytest        # 73 tests · 96% coverage (gate fails under 85%)
+uv run pytest        # 93 tests · 98% coverage (gate fails under 85%)
 uv run ruff check    # lint · zero violations required
 ```
 
@@ -177,10 +178,15 @@ manual review. Other guarantees the project holds itself to:
   point; the CLI is a thin adapter, so every interface shares one code path.
 - **Config over code** — all tunables live in versioned `config/*.json`; secrets
   come only from `.env` (git-ignored). Change the model without touching code.
-- **Cost awareness** — each run reports token usage and an estimated USD cost
-  from configured price rates (`gpt-4o-mini` @ $0.15/$0.60 per 1M in/out tokens).
+- **Cost awareness** — each run reports real token usage and an estimated USD
+  cost from configured price rates (`gpt-4o-mini` @ $0.15/$0.60 per 1M in/out
+  tokens). A live `build` prints `Tokens: 95062 · est. $0.034551` (transcript
+  below) — surfaced from the LLM's own counter through the gatekeeper wrapper.
+- **Structured logging** — logs are emitted as one redacted JSON object per line
+  (`config/logging_config.json`); a `RedactionFilter` scrubs `sk-…` keys, so no
+  secret reaches stdout/disk (verified: 0 keys in the live transcript below).
 - **≤150 LOC per file, full docstrings, pinned `uv.lock`, semantic versioning**
-  (code & config both at `1.50`; releases tagged `v1.0.0`…`v1.5.0`).
+  (code & config both at `1.60`; releases tagged `v1.0.0`…`v1.6.0`).
 - **Security** — every LLM call goes through the `ApiGatekeeper` (rate-limit ·
   retry · backpressure); the only secret is `OPENAI_API_KEY`, read from `.env`
   (git-ignored, never committed) — only `.env-example` with placeholders is
@@ -193,11 +199,37 @@ compile cleanly; the crew ran live against OpenAI):
 
 ```text
 $ uv run pytest --cov=startup_book
-73 passed in 102.97s
-Required test coverage of 85.0% reached. Total coverage: 96.84%
+93 passed in 105.36s
+Required test coverage of 85.0% reached. Total coverage: 97.80%
 
 $ uv run ruff check
 All checks passed!
+```
+
+### Live `build` run (CLI usage evidence)
+
+A real end-to-end run against OpenAI (`gpt-4o-mini`). The 8 chapters are
+generated concurrently through the `ApiGatekeeper`; each call is one redacted
+JSON log line; the CLI ends with the **real** token/cost report. Full transcript
+in [`results/build_transcript.txt`](results/build_transcript.txt).
+
+```text
+$ uv run startup-book build
+{"ts": "2026-06-09 21:57:55,662", "level": "INFO", "logger": "startup_book.gatekeeper", "msg": "api call ok (attempt 1)"}
+{"ts": "2026-06-09 21:57:56,357", "level": "INFO", "logger": "startup_book.gatekeeper", "msg": "api call ok (attempt 1)"}
+   ... 32 gatekept calls total (8 chapters × researcher→writer→reviewer→latex) ...
+{"ts": "2026-06-09 22:00:34,296", "level": "INFO", "logger": "startup_book.gatekeeper", "msg": "api call ok (attempt 1)"}
+PDF: latex/book.pdf (17 pages)
+Tokens: 95062 · est. $0.034551
+```
+
+```text
+$ uv run startup-book audit
+Pages:               17
+Overfull boxes:      0
+Missing glyphs:      0
+Undefined citations: 0
+Health: OK
 ```
 
 Build health, read from the LuaLaTeX logs after `./build.sh` and

@@ -182,3 +182,47 @@ version (logs a warning on mismatch). Git **tags** mark releases (`v1.0.0`).
 - Frequent, small commits with conventional messages.
 - Short-lived feature branches for larger units, merged with `--no-ff` to keep
   history; tag the final release. (Professor counts commits → favour granularity.)
+
+---
+
+## 8. Concurrency Model (guidelines §15)
+
+The 8 chapters are **independent** units of work whose cost is dominated by
+network latency (LLM round-trips), so they are generated **concurrently** rather
+than back-to-back. This is the project's answer to §15.
+
+### 8.1 Why threads (not async/processes) — §15.1
+- The work is **I/O-bound** (waiting on the OpenAI API), so the GIL is released
+  during the call; threads give near-linear speed-up without rewriting CrewAI's
+  synchronous API as `async`.
+- No CPU-bound hot loop ⇒ processes would only add IPC/serialization overhead.
+- Implementation: `CrewService._run_chapters` submits one
+  `_run_chapter` per chapter to a `ThreadPoolExecutor`.
+
+### 8.2 Bounding & backpressure
+- Pool width = `min(n_chapters, rate_limits.concurrent_max)` — chapter
+  parallelism never exceeds the configured concurrency budget.
+- The **API Gatekeeper** independently rate-limits every individual LLM call
+  (sliding-window RPM/RPH, FIFO admission, `concurrent_max`, retry, queue-depth
+  backpressure). Chapter threads do **not** hold a gatekeeper slot while idle, so
+  nesting the two limits cannot deadlock.
+
+### 8.3 Thread-safety note
+- Each chapter builds its **own** agents + `Crew` inside `_run_chapter`; the only
+  shared object is the `GatekeptLLM`, whose calls are stateless and serialized
+  through the gatekeeper's `threading.Condition`.
+- The gatekeeper's mutable counters/queues are all guarded by that single
+  `Condition` (one lock); admission tickets give FIFO ordering.
+- Results are written to **disjoint** indices of a pre-sized list, then
+  reassembled in outline order — no shared mutable accumulator during the run.
+
+### 8.4 §15 checklist
+- [x] Identified the concurrency model (thread pool over chapters) and justified
+      it (I/O-bound → threads, §15.1).
+- [x] Bounded concurrency via configuration (`concurrent_max`), not hardcoded.
+- [x] Shared state is lock-protected (gatekeeper `Condition`); per-task state is
+      isolated; results merged deterministically.
+- [x] No deadlock between the two bounded resources (chapter pool ⟂ gatekeeper).
+- [x] Regression test asserts observed concurrency never exceeds `concurrent_max`
+      while still running in parallel
+      (`test_chapters_run_concurrently_bounded_by_concurrent_max`).
