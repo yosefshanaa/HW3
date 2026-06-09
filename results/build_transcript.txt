@@ -1,0 +1,34 @@
+# startup-book — live `build` transcript (CLI usage evidence, §10.2)
+# Date    : 2026-06-09
+# Command : uv run startup-book build      (model: gpt-4o-mini, from config/setup.json)
+# Pipeline: research → write → review → render LaTeX → compile PDF
+# Notes   : structured JSON logs come from config/logging_config.json; every
+#           OpenAI call funnels through the ApiGatekeeper; the 8 chapters are
+#           generated concurrently (PLAN §8). CrewAI's verbose agent banners are
+#           elided here — the lines below are verbatim from the run.
+# ---------------------------------------------------------------------------
+$ uv run startup-book build
+
+# 32 gatekept OpenAI calls = 8 chapters × (researcher → writer → reviewer → latex),
+# each logged as one redacted JSON line on stderr. First and last shown:
+{"ts": "2026-06-09 21:57:55,662", "level": "INFO", "logger": "startup_book.gatekeeper", "msg": "api call ok (attempt 1)"}
+{"ts": "2026-06-09 21:57:56,357", "level": "INFO", "logger": "startup_book.gatekeeper", "msg": "api call ok (attempt 1)"}
+{"ts": "2026-06-09 21:57:57,020", "level": "INFO", "logger": "startup_book.gatekeeper", "msg": "api call ok (attempt 1)"}
+   ... (26 more — concurrent across chapters, ~2m39s wall clock) ...
+{"ts": "2026-06-09 22:00:27,131", "level": "INFO", "logger": "startup_book.gatekeeper", "msg": "api call ok (attempt 1)"}
+{"ts": "2026-06-09 22:00:34,296", "level": "INFO", "logger": "startup_book.gatekeeper", "msg": "api call ok (attempt 1)"}
+
+# Final report printed by the CLI (real token usage + estimated USD cost):
+PDF: /mnt/c/Orch/HW3/latex/book.pdf (17 pages)
+Tokens: 95062 · est. $0.034551
+
+# Verification: 0 API keys appeared anywhere in the transcript (RedactionFilter),
+# and the cost report is non-zero (the §11 bug is fixed end-to-end).
+#
+# Build health (uv run startup-book audit):
+Log:                 latex/main.log
+Pages:               17
+Overfull boxes:      0
+Missing glyphs:      0
+Undefined citations: 0
+Health: OK
