@@ -50,14 +50,22 @@ class FakeInnerLLM:
 
 
 class _Usage:
+    """Stand-in for CrewAI's ``crew.usage_metrics`` (where token counts live)."""
+
     prompt_tokens = 120
     completion_tokens = 80
 
 
 class _Result:
-    def __init__(self, pydantic: object, usage: object = _Usage()) -> None:
+    """Stand-in for ``CrewOutput`` — it carries ``pydantic`` but NO token_usage."""
+
+    def __init__(self, pydantic: object) -> None:
         self.pydantic = pydantic
-        self.token_usage = usage
+
+
+def _ok(heading: str = "h") -> tuple[_Result, _Usage]:
+    """A fake ``_run_chapter`` return value: ``(crew result, usage metrics)``."""
+    return _Result(BookContent(title="", chapters=[Chapter(id="x", heading=heading)])), _Usage()
 
 
 def _service(config_dir: Path) -> CrewService:
@@ -83,13 +91,7 @@ def test_generate_content_aggregates_chapters_title_and_usage(
     # The test config has 2 chapters -> 2 crew runs -> usage is summed. A fresh
     # result per call (production returns a new crew result each run).
     svc = _service(config_dir)
-    monkeypatch.setattr(
-        svc,
-        "_run_chapter",
-        lambda llm, topic, heading: _Result(
-            BookContent(title="", chapters=[Chapter(id="x", heading="h")])
-        ),
-    )
+    monkeypatch.setattr(svc, "_run_chapter", lambda llm, topic, heading: _ok())
 
     result = svc.generate_content("My Topic")
     assert result.title == "כותרת"  # from config
@@ -101,9 +103,9 @@ def test_generate_content_aggregates_chapters_title_and_usage(
 def test_generate_content_runs_each_chapter_with_topic(config_dir: Path, monkeypatch) -> None:
     seen: list[tuple[str, str]] = []
 
-    def fake_run(llm: object, topic: str, heading: str) -> _Result:
+    def fake_run(llm: object, topic: str, heading: str) -> tuple[_Result, _Usage]:
         seen.append((topic, heading))
-        return _Result(BookContent(title="t", chapters=[Chapter(id="x", heading=heading)]))
+        return _ok(heading)
 
     svc = _service(config_dir)
     monkeypatch.setattr(svc, "_run_chapter", fake_run)
@@ -114,7 +116,9 @@ def test_generate_content_runs_each_chapter_with_topic(config_dir: Path, monkeyp
 
 def test_unstructured_output_raises(config_dir: Path, monkeypatch) -> None:
     svc = _service(config_dir)
-    monkeypatch.setattr(svc, "_run_chapter", lambda llm, topic, heading: _Result(pydantic=None))
+    monkeypatch.setattr(
+        svc, "_run_chapter", lambda llm, topic, heading: (_Result(None), _Usage())
+    )
     with pytest.raises(CrewExecutionError):
         svc.generate_content("t")
 
@@ -131,7 +135,33 @@ def test_crew_failure_is_wrapped(config_dir: Path, monkeypatch) -> None:
 
 
 def test_extract_usage_handles_missing() -> None:
-    assert CrewService._extract_usage(_Result(None, usage=None)).total_tokens == 0
+    assert CrewService._extract_usage(None).total_tokens == 0
+
+
+def test_run_chapter_reads_usage_from_crew_metrics(config_dir: Path, monkeypatch) -> None:
+    """Token usage must come from ``crew.usage_metrics`` (the real CrewAI location),
+    not from a non-existent ``result.token_usage`` — the §11 cost-reporting bug."""
+    svc = _service(config_dir)
+
+    class FakeCrew:
+        usage_metrics = _Usage()
+
+        def __init__(self, **kwargs: object) -> None:
+            pass
+
+        def kickoff(self, inputs: dict[str, object]) -> _Result:
+            return _Result(BookContent(title="", chapters=[Chapter(id="x", heading="h")]))
+
+    monkeypatch.setattr("startup_book.services.crew_service.build_agents", lambda llm: {})
+    monkeypatch.setattr(
+        "startup_book.services.crew_service.build_chapter_tasks",
+        lambda agents, heading: [],
+    )
+    monkeypatch.setattr("startup_book.services.crew_service.Crew", FakeCrew)
+
+    result, usage = svc._run_chapter(object(), "topic", "מבוא")
+    assert isinstance(result, _Result)
+    assert (usage.prompt_tokens, usage.completion_tokens) == (120, 80)
 
 
 def test_gatekept_llm_routes_call_through_gatekeeper(fake_clock, monkeypatch) -> None:

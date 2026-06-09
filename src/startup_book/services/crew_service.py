@@ -96,12 +96,16 @@ class CrewService:
             ),
         )
 
-    def _run_chapter(self, llm: BaseLLM, topic: str, heading: str) -> object:
+    def _run_chapter(self, llm: BaseLLM, topic: str, heading: str) -> tuple[object, object]:
         """Run the full Researcher->Writer->Reviewer->LaTeX crew for ONE chapter.
 
         Running per chapter (rather than all chapters in a single response) gives
         each chapter the model's full output budget, so chapters come out full
         length instead of being rationed into a single capped response.
+
+        Returns ``(crew_output, usage_metrics)``. Token counts live on
+        ``crew.usage_metrics`` after ``kickoff`` — the ``CrewOutput`` object has no
+        ``token_usage`` attribute, so reading it from there always reported zero.
         """
         agents = build_agents(llm)
         crew = Crew(
@@ -110,7 +114,8 @@ class CrewService:
             process=Process.sequential,
             verbose=True,
         )
-        return crew.kickoff(inputs={"topic": topic})
+        result = crew.kickoff(inputs={"topic": topic})
+        return result, crew.usage_metrics
 
     def generate_content(self, topic: str | None = None) -> BookContent:
         """Author every chapter (one crew run each) and assemble :class:`BookContent`.
@@ -130,14 +135,14 @@ class CrewService:
 
         for spec in self._config.chapter_specs():
             try:
-                result = self._run_chapter(llm, topic, spec.heading_he)
+                result, usage_metrics = self._run_chapter(llm, topic, spec.heading_he)
             except Exception as exc:
                 raise CrewExecutionError(f"chapter '{spec.id}' failed: {exc}") from exc
             chapter = self._first_chapter(result, spec.id, spec.heading_he, spec.language)
             chapters.append(chapter)
             for src in getattr(getattr(result, "pydantic", None), "sources", []) or []:
                 sources[src.key] = src
-            usage = self._extract_usage(result)
+            usage = self._extract_usage(usage_metrics)
             prompt_tokens += usage.prompt_tokens
             completion_tokens += usage.completion_tokens
 
@@ -163,9 +168,8 @@ class CrewService:
         return chapter
 
     @staticmethod
-    def _extract_usage(result: object) -> TokenUsage:
-        """Best-effort extraction of token counts from the crew output."""
-        usage = getattr(result, "token_usage", None)
+    def _extract_usage(usage: object) -> TokenUsage:
+        """Normalise a CrewAI ``UsageMetrics`` object into our :class:`TokenUsage`."""
         if usage is None:
             return TokenUsage()
         return TokenUsage(
