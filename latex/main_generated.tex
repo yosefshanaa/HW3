@@ -6,6 +6,12 @@
 % =============================================================================
 \documentclass[11pt,a4paper,oneside]{report}
 \input{preamble}
+% The crew prose is machine-generated, so the odd long Hebrew/English line can
+% sit a few points over the text width. emergencystretch lets TeX absorb that on
+% the final pass instead of emitting an Overfull \hbox — keeping every line
+% inside the page (assignment §13: "tables/content don't exceed the page").
+% Scoped to the crew book only; the curated book.pdf is already overfull-free.
+\setlength{\emergencystretch}{3em}
 % The crew collects its own sources; load them so [@key] citations in the
 % generated prose resolve against the crew-produced bibliography.
 \addbibresource{generated/references.bib}

@@ -32,14 +32,14 @@ The repository ships **two compiled PDFs**, and it matters which is which:
 
 | File | What it is | Who wrote the prose | Pages |
 |------|-----------|---------------------|-------|
-| [`latex/book_generated.pdf`](latex/book_generated.pdf) | **The crew-authored book.** Written end-to-end by the CrewAI pipeline, then typeset by the same design system. | **The CrewAI agents** — every chapter, live. | 21 |
+| [`latex/book_generated.pdf`](latex/book_generated.pdf) | **The crew-authored book.** Written end-to-end by the CrewAI pipeline, then typeset by the same design system. | **The CrewAI agents** — every chapter, live. | 22 |
 | [`latex/book.pdf`](latex/book.pdf) | **The hand-curated reference edition.** Identical design; prose polished by hand for guaranteed-perfect BiDi. | Human-curated, hand-authored LaTeX (ADR-6). | 17 |
 
 **Why two?** `book_generated.pdf` is the real thing the assignment asks for — the
 agents write the **whole book**: the pipeline runs **once per chapter**
 (Researcher → Writer → Reviewer → LaTeX), so each chapter comes out full-length
-(600–900 words, 6–7 sections), with bold key terms, a *takeaway* callout, `\cite`
-citations and the crew's own 40+ source bibliography. `book.pdf` is the same book
+(~700–850 words, 6 sections), with bold key terms, a *takeaway* callout, `\cite`
+citations and the crew's own 30+ source bibliography. `book.pdf` is the same book
 with the prose hand-polished, kept as a guaranteed-clean reference because the
 grade is partly on the *wrapper* (correct BiDi, formulas, linked citations, tables
 that fit the page — §13.2) and curated prose removes all typesetting risk (ADR-6).
@@ -237,15 +237,17 @@ Build health, read from the LuaLaTeX logs after `./build.sh` and
 
 ```text
 book.pdf             17 pp | overfull=0  missing-glyphs=0  undefined-cites=0  fatal=0
-book_generated.pdf  21 pp | overfull=1  missing-glyphs=0  undefined-cites=0  fatal=0
+book_generated.pdf  22 pp | overfull=0  missing-glyphs=0  undefined-cites=0  fatal=0
 
 book_generated.pdf — words authored live by the crew, per chapter:
-ch1 758   ch2 933   ch3 694   ch4 651   ch5 737   ch6 636   ch7 690   ch8 661
+ch1 732   ch2 725   ch3 790   ch4 791   ch5 798   ch6 799   ch7 746   ch8 826
 ```
 
-The single `overfull=1` in the crew book is a 4.9 pt line (≈1.7 mm, not visible).
-Unlike a sources-only submission, **both PDFs exist in the repo** — open them, no
-TeX install required.
+**Both** PDFs now build with **0 overfull boxes** (the crew book uses
+`\emergencystretch` so no machine-generated line ever spills past the text
+width — the assignment grades on "content doesn't exceed the page"). Unlike a
+sources-only submission, **both PDFs exist in the repo** — open them, no TeX
+install required.
 
 ## Configuration
 
