@@ -10,7 +10,7 @@ misbehaving.
 from __future__ import annotations
 
 # Code version. Bump the minor part on meaningful changes (guidelines §8.1).
-__version__ = "1.40"
+__version__ = "1.50"
 
 
 def _major(version: str) -> str:

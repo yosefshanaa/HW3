@@ -1,5 +1,5 @@
 {
-  "version": "1.40",
+  "version": "1.50",
   "services": {
     "default": {
       "requests_per_minute": 30,
