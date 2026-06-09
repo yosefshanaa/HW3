@@ -51,17 +51,20 @@ class CrewService:
             ),
         )
 
-    def _run_chapter(self, llm: BaseLLM, topic: str, heading: str) -> tuple[object, object]:
+    def _run_chapter(self, topic: str, heading: str) -> tuple[object, object]:
         """Run the full Researcher->Writer->Reviewer->LaTeX crew for ONE chapter.
 
         Running per chapter (rather than all chapters in a single response) gives
         each chapter the model's full output budget, so chapters come out full
         length instead of being rationed into a single capped response.
 
-        Returns ``(crew_output, usage_metrics)``. Token counts live on
-        ``crew.usage_metrics`` after ``kickoff`` — the ``CrewOutput`` object has no
-        ``token_usage`` attribute, so reading it from there always reported zero.
+        A **fresh** LLM is built per chapter so its token counter measures only
+        this chapter (counted once), and so concurrent chapters never share a
+        mutable usage accumulator. Usage is read straight from the LLM —
+        ``crew.usage_metrics`` sums per-agent and would multiply the shared
+        wrapper's total by the agent count, so it is unreliable here.
         """
+        llm = self._build_llm()
         agents = build_agents(llm)
         crew = Crew(
             agents=list(agents.values()),
@@ -70,7 +73,7 @@ class CrewService:
             verbose=True,
         )
         result = crew.kickoff(inputs={"topic": topic})
-        return result, crew.usage_metrics
+        return result, llm.get_token_usage_summary()
 
     def generate_content(self, topic: str | None = None) -> BookContent:
         """Author every chapter (one crew run each) and assemble :class:`BookContent`.
@@ -86,9 +89,8 @@ class CrewService:
         """
         book = self._config.book()
         topic = topic or book["title_en"]
-        llm = self._build_llm()
         specs = self._config.chapter_specs()
-        results = self._run_chapters(llm, topic, specs)
+        results = self._run_chapters(topic, specs)
 
         chapters: list[Chapter] = []
         sources: dict[str, Source] = {}
@@ -112,7 +114,7 @@ class CrewService:
         )
 
     def _run_chapters(
-        self, llm: BaseLLM, topic: str, specs: list[ChapterSpec]
+        self, topic: str, specs: list[ChapterSpec]
     ) -> list[tuple[object, object]]:
         """Run every chapter crew concurrently and return results in outline order.
 
@@ -121,12 +123,13 @@ class CrewService:
         ``concurrent_max`` so chapter parallelism never exceeds the concurrency
         budget — the gatekeeper still independently throttles each LLM call, so
         no chapter thread holds a gatekeeper slot while waiting (no deadlock).
+        Each task builds its own LLM, so no usage counter is shared across threads.
         """
         max_workers = max(1, min(len(specs), self._config.rate_limit().concurrent_max))
         results: list[tuple[object, object]] = [(None, None)] * len(specs)
         with ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="chapter") as pool:
             futures = {
-                pool.submit(self._run_chapter, llm, topic, spec.heading_he): i
+                pool.submit(self._run_chapter, topic, spec.heading_he): i
                 for i, spec in enumerate(specs)
             }
             for future, i in futures.items():

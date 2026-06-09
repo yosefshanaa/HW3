@@ -52,6 +52,9 @@ class FakeInnerLLM:
     def to_config_dict(self) -> dict[str, object]:
         return {"model": self.model}
 
+    def get_token_usage_summary(self) -> object:
+        return _Usage()
+
 
 class _Usage:
     """Stand-in for CrewAI's ``crew.usage_metrics`` (where token counts live)."""
@@ -95,7 +98,7 @@ def test_generate_content_aggregates_chapters_title_and_usage(
     # The test config has 2 chapters -> 2 crew runs -> usage is summed. A fresh
     # result per call (production returns a new crew result each run).
     svc = _service(config_dir)
-    monkeypatch.setattr(svc, "_run_chapter", lambda llm, topic, heading: _ok())
+    monkeypatch.setattr(svc, "_run_chapter", lambda topic, heading: _ok())
 
     result = svc.generate_content("My Topic")
     assert result.title == "כותרת"  # from config
@@ -107,7 +110,7 @@ def test_generate_content_aggregates_chapters_title_and_usage(
 def test_generate_content_runs_each_chapter_with_topic(config_dir: Path, monkeypatch) -> None:
     seen: list[tuple[str, str]] = []
 
-    def fake_run(llm: object, topic: str, heading: str) -> tuple[_Result, _Usage]:
+    def fake_run(topic: str, heading: str) -> tuple[_Result, _Usage]:
         seen.append((topic, heading))
         return _ok(heading)
 
@@ -122,9 +125,7 @@ def test_generate_content_runs_each_chapter_with_topic(config_dir: Path, monkeyp
 
 def test_unstructured_output_raises(config_dir: Path, monkeypatch) -> None:
     svc = _service(config_dir)
-    monkeypatch.setattr(
-        svc, "_run_chapter", lambda llm, topic, heading: (_Result(None), _Usage())
-    )
+    monkeypatch.setattr(svc, "_run_chapter", lambda topic, heading: (_Result(None), _Usage()))
     with pytest.raises(CrewExecutionError):
         svc.generate_content("t")
 
@@ -132,7 +133,7 @@ def test_unstructured_output_raises(config_dir: Path, monkeypatch) -> None:
 def test_crew_failure_is_wrapped(config_dir: Path, monkeypatch) -> None:
     svc = _service(config_dir)
 
-    def boom(llm: object, topic: str, heading: str) -> None:
+    def boom(topic: str, heading: str) -> None:
         raise RuntimeError("llm down")
 
     monkeypatch.setattr(svc, "_run_chapter", boom)
@@ -144,13 +145,18 @@ def test_extract_usage_handles_missing() -> None:
     assert CrewService._extract_usage(None).total_tokens == 0
 
 
-def test_run_chapter_reads_usage_from_crew_metrics(config_dir: Path, monkeypatch) -> None:
-    """Token usage must come from ``crew.usage_metrics`` (the real CrewAI location),
-    not from a non-existent ``result.token_usage`` — the §11 cost-reporting bug."""
+def test_run_chapter_reads_usage_from_llm_summary(config_dir: Path, monkeypatch) -> None:
+    """Token usage must come from the LLM's own accumulated counter — the wrapper
+    records none, and crew.usage_metrics over-counts the shared LLM. This is the
+    §11 cost-reporting bug (it previously read a non-existent result.token_usage)."""
     svc = _service(config_dir)
 
+    class FakeLLM:
+        def get_token_usage_summary(self) -> _Usage:
+            return _Usage()
+
     class FakeCrew:
-        usage_metrics = _Usage()
+        usage_metrics = _Usage()  # deliberately present but ignored (it over-counts)
 
         def __init__(self, **kwargs: object) -> None:
             pass
@@ -158,6 +164,7 @@ def test_run_chapter_reads_usage_from_crew_metrics(config_dir: Path, monkeypatch
         def kickoff(self, inputs: dict[str, object]) -> _Result:
             return _Result(BookContent(title="", chapters=[Chapter(id="x", heading="h")]))
 
+    monkeypatch.setattr(svc, "_build_llm", lambda: FakeLLM())
     monkeypatch.setattr("startup_book.services.crew_service.build_agents", lambda llm: {})
     monkeypatch.setattr(
         "startup_book.services.crew_service.build_chapter_tasks",
@@ -165,7 +172,7 @@ def test_run_chapter_reads_usage_from_crew_metrics(config_dir: Path, monkeypatch
     )
     monkeypatch.setattr("startup_book.services.crew_service.Crew", FakeCrew)
 
-    result, usage = svc._run_chapter(object(), "topic", "מבוא")
+    result, usage = svc._run_chapter("topic", "מבוא")
     assert isinstance(result, _Result)
     assert (usage.prompt_tokens, usage.completion_tokens) == (120, 80)
 
@@ -208,6 +215,14 @@ def test_gatekept_llm_delegates_capabilities(fake_clock) -> None:
     assert llm.to_config_dict() == {"model": "gpt-4o-mini"}
 
 
+def test_gatekept_llm_reports_inner_token_usage(fake_clock) -> None:
+    """Usage must be surfaced from the inner LLM (where litellm records it)."""
+    gk = ApiGatekeeper(_service_config(), fake_clock)
+    llm = GatekeptLLM(gatekeeper=gk, inner=FakeInnerLLM())
+    usage = llm.get_token_usage_summary()
+    assert (usage.prompt_tokens, usage.completion_tokens) == (120, 80)
+
+
 def _write_config(config_dir: Path, *, n_chapters: int, concurrent_max: int) -> None:
     """Write a setup.json with N chapters and a rate_limits.json with the cap."""
     setup = {
@@ -247,7 +262,7 @@ def test_chapters_run_concurrently_bounded_by_concurrent_max(tmp_path: Path, mon
     state = {"active": 0, "peak": 0}
     lock = threading.Lock()
 
-    def fake_run(llm: object, topic: str, heading: str) -> tuple[_Result, _Usage]:
+    def fake_run(topic: str, heading: str) -> tuple[_Result, _Usage]:
         with lock:
             state["active"] += 1
             state["peak"] = max(state["peak"], state["active"])

@@ -66,3 +66,12 @@ class GatekeptLLM(BaseLLM):
     def to_config_dict(self) -> dict[str, object]:
         """Delegate config serialization to the provider LLM."""
         return self._inner.to_config_dict()
+
+    def get_token_usage_summary(self) -> object:
+        """Report the *inner* LLM's accumulated token usage.
+
+        CrewAI reads usage via ``agent.llm.get_token_usage_summary()``. Only the
+        inner LLM actually executes litellm calls and records tokens, so the
+        wrapper must surface the inner's totals — otherwise usage reads as zero.
+        """
+        return self._inner.get_token_usage_summary()
